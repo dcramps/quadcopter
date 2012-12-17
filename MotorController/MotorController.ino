@@ -1,4 +1,5 @@
-#include "WiFly.h"
+#include <SPI.h>
+#include <WiFly.h>
 #include <Servo.h>
 
 #define MOTOR_1_PIN 9
@@ -16,10 +17,12 @@ Servo motor2;
 Servo motor3;
 Servo motor4;
 
-Server server(80);
+WiFlyServer server(80);
+char ssid[] = "DRONE";
 
 void setup() 
 {  
+  Serial.begin(9600);
   motor1.attach(MOTOR_1_PIN);
   motor2.attach(MOTOR_2_PIN);
   motor3.attach(MOTOR_3_PIN);
@@ -30,27 +33,36 @@ void setup()
   motor3.writeMicroseconds(1000);
   motor4.writeMicroseconds(1000);
   
-  WiFly.begin(); //I edited the library code
-
-// I don't even know what the fuck this does or how it got here
-  pinMode(2,OUTPUT);
+  WiFly.begin(true);
   server.begin();
+  
+  if (!WiFly.createAdHocNetwork(ssid)) {
+    while (1) { } //bad things have happened.
+  }
+  
+  Serial.print("Network is up at ");
+  Serial.println(WiFly.ip());
+  
+  Serial.println("Starting the server");
+  server.begin();
+  Serial.println("Started. Entering loop in 3 seconds.");
+  delay(3000);
 }
 
-int freeRam()
-{
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
-
+boolean first = true;
 void loop() 
 {
-  Client client = server.available();
+  WiFlyClient client = server.available();
   if (client) {
     String clientMsg ="";
     while (client.connected()) {
       if (client.available()) {
+        //I want to see this only once to make sure it's reading my data.
+        if(first) {
+          Serial.println("Client connected");
+          first=false;
+        } 
+        
         char c = client.read();
         clientMsg+=c;
         if (c == ';') {
@@ -59,7 +71,6 @@ void loop()
         }
       }
     }
-    // give the Client time to receive the data
     delay(1);
   }
 }
