@@ -1,14 +1,63 @@
-Arduino
+Roll
+Forward == Positive
 
+Pitch
+Left == Negative
+
+Yaw
+Left == Negative
+
+
+
+
+Arduino
 Blue    Green
 A5      A4
 Clock   Data
 
-Motion+ (Digital 4 high)
+Motion+ (Digital 2)
 Mid --> Edge
-1     2      3       4        5     6   7
-3.3v  Clock  Nothing Nothing  Data  GND Nothing
+1	2	3	4	5	6	7
+3.3v	Clock	Nothing	Nothing	Data	GND	Nothing
 
-Nunchuck (Digital 2 high)
+Nunchuck (Digital 4)
+Mid --> Edge
+1	2	3	4	Empty	6
+Nothing	GND	Data	Clock	Nothing	3.3v
 
+
+Sensitivity = 210
+
+X
+Max   727	
+Min   315
+Diff  412
+Mid   521
+Rest  525
+Sens  207
+
+
+Y
+Max   724	
+Min   311
+Diff  413
+Mid   518
+Rest  516
+Sens  207
+
+Z
+Max   723
+Min   306
+Diff  417
+Mid   515
+Rest ~515
+Sens  207
+
+float ax = rawX*(3.3/(1024.0*((727-315))/207))
+float ay = rawY*(3.3/(1024.0*((724-311))/207))
+float az = rawZ*(3.3/(1024.0*((723-306))/207))
+
+x_angle = atan(ax/sqrt(pow(ay,2)+pow(az,2)))*(180/M_PI);
+y_angle = atan(ay/sqrt(pow(ax,2)+pow(az,2)))*(180/M_PI);
+z_angle = atan(sqrt(pow(ay,2)+pow(ax,2))/az)*(180/M_PI);
 
