@@ -1,207 +1,158 @@
 #include "Credentials.h"
+#include "MotionPlus.h"
+#include "Nunchuck.h"
 #include <SPI.h>
 #include <WiFly.h>
 #include <Wire.h>
+#include <math.h>
+
+/* loop stuff */
+const int r2d = 57.2957795; //radians to de
+long timer;                         //millis at start of calculation
+long diff;                          //difference between now and last cycle
+float dt;                           //delta in seconds
+int calc = 0;                       //number of calculations since last data transmit
+
 
 /* Wii Motion + */
-#define MOTIONPLUS 4
-byte data[6];                        //data bytes from device
-int yaw, pitch, roll;                //each axis
-int yaw0, pitch0, roll0;             //calibration zeroes
-bool slowYaw, slowPitch, slowRoll;   //slow and fast mode support
-int yawScale, pitchScale, rollScale; //scale factor to use based on slow/fast mode
-const int slowScale = 20;            //slow scale factor
-const int fastScale = 5;             //fast scale factor
+#define MOTIONPLUS 2
+MotionPlus wmp = MotionPlus();
 
 /* Nunchuck */
-#define NUNCHUCK 2
+#define NUNCHUCK 4
+Nunchuck nunchuck = Nunchuck();
+
+#define ZEROX 525
+#define ZEROY 516
+#define ZEROZ 306
+
 
 /* Web Client - Send gyro data to Processing server */
 byte server[] = { 192, 168, 1, 3 };
 WiFlyClient client(server, 8000);
 
-void wmpOn(){
-  Serial.println("DEBUG\tActivating WM+");
-  Wire.beginTransmission(0x53);    //WM+ starts out deactivated at address 0x53
-  Wire.write(0xfe);                //send 0x04 to address 0xFE to activate WM+
-  Wire.write(0x04);
-  byte ret = Wire.endTransmission();          //WM+ jumps to address 0x52 and is now active
-  if(ret==1) {
-    Serial.println("DEBUG\tData too long");
-  } else if (ret==2) {
-    Serial.println("DEBUG\tNACK on address");
-  } else if (ret==3) {
-    Serial.println("DEBUG\tNACK on data");
-  } else if (ret==4) {
-    Serial.println("DEBUG\twtf");
-  } else {
-    Serial.println(ret);
-  }
-  Serial.println("DEBUG\tActivating WM+ done");
+void switchWmp() 
+{
+    digitalWrite(NUNCHUCK, LOW);
+    digitalWrite(MOTIONPLUS, LOW);
+    digitalWrite(MOTIONPLUS, HIGH);    
 }
 
-void wmpSendZero(){
-  Wire.beginTransmission(0x52);    //now at address 0x52
-  Wire.write(0x00);                //send zero to signal we want info
-  Wire.endTransmission();
+void switchNunchuck()
+{
+    digitalWrite(MOTIONPLUS, LOW);
+    digitalWrite(NUNCHUCK, LOW);
+    digitalWrite(NUNCHUCK, HIGH);
 }
 
-void calibrateZeroes(){
-  Serial.println("DEBUG\tCalibrating zeroes");
-  for (int i=0;i<10;i++){
-    wmpSendZero();
-    Wire.requestFrom(0x52,6);
-    data[0]=Wire.read();
-    data[1]=Wire.read();
-    data[2]=Wire.read();
-    data[3]=Wire.read();
-    data[4]=Wire.read();
-    data[5]=Wire.read();
-  
-    //average 10 readings for each zero
-    yaw0+=(((data[3]>>2)<<8)+data[0])/10;
-    pitch0+=(((data[4]>>2)<<8)+data[1])/10;
-    roll0+=(((data[5]>>2)<<8)+data[2])/10;
-  }
-//  Serial.print("Yaw0:");
-//  Serial.print(yaw0);
-//  Serial.print("  Pitch0:");
-//  Serial.print(pitch0);
-//  Serial.print("  Roll0:");
-//  Serial.println(roll0);
-  Serial.println("DEBUG\tCalibrating zeroes done");
-}
+void setup()
+{
+    Serial.begin(115200);
+    Serial.println("SETUP\tStarting...");
 
-void receiveData(){
-  wmpSendZero();                   //send zero before each request (same as nunchuck)
-  Wire.requestFrom(0x52,6);        //request the six bytes from the WM+
-  data[0]=Wire.read();
-  data[1]=Wire.read();
-  data[2]=Wire.read();
-  data[3]=Wire.read();
-  data[4]=Wire.read();
-  data[5]=Wire.read();
-  
-  
-  //check if in slow or fast mode
-  slowPitch = data[3] & 1;
-  slowYaw = data[3] & 2;
-  slowRoll = data[4] & 2;
-  
-  if (slowYaw) {
-    yawScale = slowScale; 
-  } else {
-    yawScale = fastScale;
-  }  
-  
-  if (slowPitch) {
-    pitchScale = slowScale; 
-  } else {
-    pitchScale = fastScale;
-  } 
-  
-  if (slowRoll) {
-    rollScale = slowScale; 
-  } else {
-    rollScale = fastScale;
-  } 
+    /*Setup Pins*/
+    pinMode(MOTIONPLUS, OUTPUT);
+    pinMode(NUNCHUCK, OUTPUT);
 
-  //values as degrees/sec
-  yaw=(((data[3]>>2)<<8)+data[0]-yaw0)/yawScale;
-  pitch=(((data[4]>>2)<<8)+data[1]-pitch0)/pitchScale;
-  roll=(((data[5]>>2)<<8)+data[2]-roll0)/rollScale;   
-  
-}
-
-
-long timer;                       //millis at start of calculation
-long diff;                        //difference between now and last cycle
-float dt;                         //delta in seconds
-float y_angle, p_angle, r_angle;  //gyro data as angles (degrees)
-int calc = 0;
-
-void setup(){
-  Serial.begin(115200);
-  Serial.println("SETUP\tStarting...");
-
-  /*Setup Pins*/
-  pinMode(MOTIONPLUS, OUTPUT);
-  pinMode(NUNCHUCK, OUTPUT);
-
-  digitalWrite(NUNCHUCK, HIGH);
-  digitalWrite(MOTIONPLUS, HIGH);
-   
-  /*Enable Motion+*/
-  digitalWrite(NUNCHUCK, LOW);
-  digitalWrite(MOTIONPLUS, LOW);
-  digitalWrite(MOTIONPLUS, HIGH);  
-  Serial.println("SETUP\tMotionPlus enabled");
-  
-  /* Gyro */
-  Serial.println("SETUP\tInit gyro");
-  Wire.begin();
-
-  wmpOn();
-  calibrateZeroes();
-  timer = millis();  
-  Serial.println("SETUP\tDone");
-  
-  /* Client */
-  Serial.println("SETUP\tStarting WiFly");
-  WiFly.begin();
-  
-  if (!WiFly.join(ssid, passphrase)) {
-    Serial.println("CLIENT\tAssociation failed.");
-    while (1) { }
-  }
-
-  //WiFly.configure(WIFLY_BAUD, 38400);  
-  Serial.println("CLIENT\tConnecting.");
-  if (client.connect()) {
-    Serial.println("CLIENT\tConnected.");
-  } else {
-    Serial.println("CLIENT\tConnection failed.");
-  }
-  
-  delay(1000);
-}
-
-void loop(){
-  diff = millis()-timer;
-  dt = diff*0.001; //delta in seconds
-  if (diff > 10) {
-    calc++;
-    timer = millis();
-    receiveData();
-    y_angle = y_angle + (float)yaw * dt;
-    p_angle = p_angle + (float)pitch * dt;
-    r_angle = r_angle + (float)roll * dt;
+    /*Necessary?*/
+    digitalWrite(NUNCHUCK, HIGH);
+    digitalWrite(MOTIONPLUS, HIGH);
+     
+    /*Init MotionPlus*/
+    switchWmp();
+    wmp.init();
+    Serial.println("Gyro enabled");
     
-    Serial.print("DATA\tYaw: ");
-    Serial.print(y_angle);
+    /*Init Nunchuck*/
+    switchNunchuck();
+    nunchuck.init();
+    Serial.println("Accel enabled");
+          
+    /* Client */
+    Serial.println("SETUP\tStarting WiFly");
+    WiFly.begin();
     
-    Serial.print("\tPitch: ");
-    Serial.print(p_angle);
-    
-    Serial.print("\tRoll: ");
-    Serial.println(r_angle);
-  }
-  
-  if (calc==10) {
-    Serial.println("CLIENT\tSending data");
-    if (client.connected()) {
-      //yaw
-      client.write((byte)((int16_t)y_angle >> 8));
-      client.write((byte)((int16_t)y_angle));
-    
-      //pitch
-      client.write((byte)((int16_t)p_angle >> 8));
-      client.write((byte)((int16_t)p_angle));
-    
-      //roll
-      client.write((byte)((int16_t)r_angle >> 8));
-      client.write((byte)(r_angle));   
+    if (!WiFly.join(ssid, passphrase)) {
+        Serial.println("CLIENT\tAssociation failed.");
+        while (1) { }
     }
-    calc=0;
-  }
+
+    //WiFly.configure(WIFLY_BAUD, 38400);    
+    Serial.println("CLIENT\tConnecting.");
+    if (client.connect()) {
+        Serial.println("CLIENT\tConnected.");
+    } else {
+        Serial.println("CLIENT\tConnection failed.");
+    }
+
+    delay(1000);
+    timer = millis();
+}
+
+float pitch_angle = 0.0;
+float roll_angle = 0.0;
+float yaw_angle = 0.0;
+
+void loop()
+{
+    diff = millis()-timer;
+    dt = diff*0.001; //delta in seconds
+    
+    if (diff > 9) {
+        //Serial.println(diff);
+        calc++;
+        timer = millis();
+        
+        
+        /*Gyro*/
+        switchWmp();
+        wmp.update();
+        
+        /*Accel*/
+        switchNunchuck();
+        nunchuck.update();
+        float rx = nunchuck.accelX - ZEROX;
+        float ry = nunchuck.accelY - ZEROY;
+        float rz = nunchuck.accelZ - ZEROZ;
+        
+        float ax = rx*0.001619;
+        float ay = ry*0.001615;
+        float az = rz*0.001599;
+        
+        float x_angle = (atan(ax/sqrt(pow(ay,2)+pow(az,2)))*r2d)*2;
+        float y_angle = (atan(ay/sqrt(pow(ax,2)+pow(az,2)))*r2d)*2;
+        float z_angle = atan(sqrt(pow(ay,2)+pow(ax,2))/az)*r2d;
+            
+        /* Do math! Using negatives for Gyro since it's installed opposite as it should*/
+        pitch_angle = 0.95 * (pitch_angle - wmp.pitch * dt) + 0.05 * x_angle;
+        roll_angle  = 0.95 * (roll_angle  - wmp.roll  * dt) + 0.05 * y_angle;
+        yaw_angle = yaw_angle + wmp.yaw * dt; //this is so shitty.
+        //yaw_angle = 0; //so ignore for now
+        
+        Serial.print(yaw_angle); printTab();
+        Serial.print(pitch_angle); printTab();
+        Serial.println(roll_angle);
+    }
+    
+    if (calc==10) {
+        if (client.connected()) {
+            //yaw
+            client.write((byte)((int16_t)yaw_angle >> 8));
+            client.write((byte)((int16_t)yaw_angle));
+        
+            //pitch
+            client.write((byte)((int16_t)pitch_angle >> 8));
+            client.write((byte)((int16_t)pitch_angle));
+        
+            //roll
+            client.write((byte)((int16_t)roll_angle >> 8));
+            client.write((byte)(roll_angle));     
+        }
+        calc=0;
+    }
+}
+
+void printTab()
+{
+    Serial.print("\t");
 }
