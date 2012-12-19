@@ -6,13 +6,20 @@
 #include <Wire.h>
 #include <math.h>
 
+/* Constants */
+const float Vdd = 3.3;
+const float Voff = Vdd/2.0f + (Vdd/2.0f)*(0.03); //Vdd/2 +/-6%
+const float So = Vdd/5.0f; //Vdd/5 +/-10%
+const float SoInv = 1/So;
+const float radToDeg = 180/M_PI;
+const float VddStep = Vdd/1023;
+
 /* loop stuff */
 const int r2d = 57.2957795; //radians to de
 long timer;                         //millis at start of calculation
 long diff;                          //difference between now and last cycle
 float dt;                           //delta in seconds
 int calc = 0;                       //number of calculations since last data transmit
-
 
 /* Wii Motion + */
 #define MOTIONPLUS 2
@@ -22,10 +29,10 @@ MotionPlus wmp = MotionPlus();
 #define NUNCHUCK 4
 Nunchuck nunchuck = Nunchuck();
 
-#define ZEROX 525
-#define ZEROY 516
-#define ZEROZ 306
-
+/* Output data */
+float pitch_angle = 0.0;
+float roll_angle = 0.0;
+float yaw_angle = 0.0;
 
 /* Web Client - Send gyro data to Processing server */
 byte server[] = { 192, 168, 1, 3 };
@@ -84,22 +91,18 @@ void setup()
     } else {
         Serial.println("CLIENT\tConnection failed.");
     }
-
-    delay(1000);
+    
     timer = millis();
 }
 
-float pitch_angle = 0.0;
-float roll_angle = 0.0;
-float yaw_angle = 0.0;
-
+float Rx, Ry, Rz, ax, ay, az, R;
 void loop()
 {
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
     
     if (diff > 9) {
-        //Serial.println(diff);
+//        Serial.println(diff);
         calc++;
         timer = millis();
         
@@ -111,27 +114,24 @@ void loop()
         /*Accel*/
         switchNunchuck();
         nunchuck.update();
-        float rx = nunchuck.accelX - ZEROX;
-        float ry = nunchuck.accelY - ZEROY;
-        float rz = nunchuck.accelZ - ZEROZ;
+       
+        Rx = ((nunchuck.accelX * VddStep) - Voff) * SoInv;
+        Ry = ((nunchuck.accelY * VddStep) - Voff) * SoInv;
+        Rz = ((nunchuck.accelZ * VddStep) - Voff) * SoInv;
         
-        float ax = rx*0.001619;
-        float ay = ry*0.001615;
-        float az = rz*0.001599;
+        float ax = -1 * atan(Rx / sqrt(pow(Ry,2) + pow(Rz,2))) * radToDeg;
+        float ay = -1 * atan(Ry / sqrt(pow(Rx,2) + pow(Rz,2))) * radToDeg;
         
-        float x_angle = (atan(ax/sqrt(pow(ay,2)+pow(az,2)))*r2d)*2;
-        float y_angle = (atan(ay/sqrt(pow(ax,2)+pow(az,2)))*r2d)*2;
-        float z_angle = atan(sqrt(pow(ay,2)+pow(ax,2))/az)*r2d;
-            
-        /* Do math! Using negatives for Gyro since it's installed opposite as it should*/
-        pitch_angle = 0.95 * (pitch_angle - wmp.pitch * dt) + 0.05 * x_angle;
-        roll_angle  = 0.95 * (roll_angle  - wmp.roll  * dt) + 0.05 * y_angle;
-        yaw_angle = yaw_angle + wmp.yaw * dt; //this is so shitty.
-        //yaw_angle = 0; //so ignore for now
+                            
+        /* Using negatives for Gyro since it's installed opposite as it should*/
+        pitch_angle = 0.92 * (pitch_angle - wmp.pitch * dt) + 0.08 * ax;
+        roll_angle  = 0.92 * (roll_angle  - wmp.roll  * dt) + 0.08 * ay;
+        yaw_angle   = yaw_angle + wmp.yaw * dt;
         
-        Serial.print(yaw_angle); printTab();
-        Serial.print(pitch_angle); printTab();
-        Serial.println(roll_angle);
+        Serial.print((int)yaw_angle); tab();
+        Serial.print((int)pitch_angle); tab();
+        Serial.print((int)roll_angle); tab();
+        Serial.println(Rz);
     }
     
     if (calc==10) {
@@ -152,7 +152,7 @@ void loop()
     }
 }
 
-void printTab()
+void tab()
 {
     Serial.print("\t");
 }
