@@ -35,7 +35,8 @@ Diff  412
 Mid   521
 Rest  525
 Sens  207
-
+1023-524 = 499
+524 - 0 = 524
 
 Y
 Max   724	
@@ -50,12 +51,12 @@ Max   723
 Min   306
 Diff  417
 Mid   515
-Rest ~515
+Rest ~723
 Sens  207
 
-float ax = rawX*(3.3/(1024.0*((727-315))/207))
-float ay = rawY*(3.3/(1024.0*((724-311))/207))
-float az = rawZ*(3.3/(1024.0*((723-306))/207))
+float ax = rawX*(3.3/(1024.0*((1024-0))/512)) --> 0.0064453125
+float ay = rawY*(3.3/(1024.0*((1024-0))/512))
+float az = rawZ*(3.3/(1024.0*((1024-0))/512))
 
 x_angle = atan(ax/sqrt(pow(ay,2)+pow(az,2)))*(180/M_PI);
 y_angle = atan(ay/sqrt(pow(ax,2)+pow(az,2)))*(180/M_PI);
