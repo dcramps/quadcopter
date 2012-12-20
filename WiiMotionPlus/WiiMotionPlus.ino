@@ -6,20 +6,30 @@
 #include <Wire.h>
 #include <math.h>
 
-/* Constants */
+/* Constants 
+ * Values derived from the datasheet
+ * http://html.alldatasheet.com/html-pdf/171987/STMICROELECTRONICS/LIS3L02AL/9754/5/LIS3L02AL.html
+ */
 const float Vdd = 3.3;
 const float Voff = Vdd/2.0f + (Vdd/2.0f)*(0.0015); //Vdd/2 +/-6%
 const float So = Vdd/5.0f; //Vdd/5 +/-10%
+
+/*
+ * Pre-calculate some more stuff. Division is expensive, so
+ * I don't want to waste cycles on it needlessly for constant
+ * values.
+ */
 const float SoInv = 1/So;
 const float radToDeg = 180/M_PI;
 const float VddStep = Vdd/1023;
 
 /* loop stuff */
-const int r2d = 57.2957795; //radians to de
-long timer;                         //millis at start of calculation
-long diff;                          //difference between now and last cycle
-float dt;                           //delta in seconds
-int calc = 0;                       //number of calculations since last data transmit
+float Rx, Ry, Rz; //unconverted acc values
+float ax, ay;     //accelerometer values in degrees
+long timer;       //millis at start of calculation
+long diff;        //difference between now and last cycle
+float dt;         //delta in seconds
+int calc = 0;     //number of calculations since last data transmit
 
 /* Wii Motion + */
 #define MOTIONPLUS 2
@@ -38,6 +48,15 @@ float yaw_angle = 0.0;
 byte server[] = { 192, 168, 1, 3 };
 WiFlyClient client(server, 8000);
 
+
+
+/*
+ * WMP and Nunchuck communicate on the same I²C address
+ * so use two NPN transistors to switch the data line
+ * between them as needed.
+ *
+ * Setting a line to HIGH enables it, LOW disables it.
+ */
 void switchWmp() 
 {
     digitalWrite(NUNCHUCK, LOW);
@@ -95,10 +114,6 @@ void setup()
     timer = millis();
 }
 
-float maxx, maxy;
-float minx, miny;
-float Rx, Ry, Rz;
-float ax, ay;
 void loop()
 {
     diff = millis()-timer;
