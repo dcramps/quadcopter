@@ -8,7 +8,7 @@
 
 /* Constants */
 const float Vdd = 3.3;
-const float Voff = Vdd/2.0f + (Vdd/2.0f)*(0.03); //Vdd/2 +/-6%
+const float Voff = Vdd/2.0f + (Vdd/2.0f)*(0.0015); //Vdd/2 +/-6%
 const float So = Vdd/5.0f; //Vdd/5 +/-10%
 const float SoInv = 1/So;
 const float radToDeg = 180/M_PI;
@@ -54,8 +54,8 @@ void switchNunchuck()
 
 void setup()
 {
-    Serial.begin(115200);
-    Serial.println("SETUP\tStarting...");
+    //Serial.begin(115200);
+    //Serial.println("SETUP\tStarting...");
 
     /*Setup Pins*/
     pinMode(MOTIONPLUS, OUTPUT);
@@ -68,41 +68,43 @@ void setup()
     /*Init MotionPlus*/
     switchWmp();
     wmp.init();
-    Serial.println("Gyro enabled");
+    //Serial.println("Gyro enabled");
     
     /*Init Nunchuck*/
     switchNunchuck();
     nunchuck.init();
-    Serial.println("Accel enabled");
+    //Serial.println("Accel enabled");
           
     /* Client */
-    Serial.println("SETUP\tStarting WiFly");
+    //Serial.println("SETUP\tStarting WiFly");
     WiFly.begin();
     
     if (!WiFly.join(ssid, passphrase)) {
-        Serial.println("CLIENT\tAssociation failed.");
+        //Serial.println("CLIENT\tAssociation failed.");
         while (1) { }
     }
 
     //WiFly.configure(WIFLY_BAUD, 38400);    
-    Serial.println("CLIENT\tConnecting.");
+    //Serial.println("CLIENT\tConnecting.");
     if (client.connect()) {
-        Serial.println("CLIENT\tConnected.");
+        //Serial.println("CLIENT\tConnected.");
     } else {
-        Serial.println("CLIENT\tConnection failed.");
+        //Serial.println("CLIENT\tConnection failed.");
     }
     
     timer = millis();
 }
 
-float Rx, Ry, Rz, ax, ay, az, R;
+float maxx, maxy;
+float minx, miny;
+float Rx, Ry, Rz;
+float ax, ay;
 void loop()
 {
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
     
     if (diff > 9) {
-//        Serial.println(diff);
         calc++;
         timer = millis();
         
@@ -115,23 +117,19 @@ void loop()
         switchNunchuck();
         nunchuck.update();
        
-        Rx = ((nunchuck.accelX * VddStep) - Voff) * SoInv;
-        Ry = ((nunchuck.accelY * VddStep) - Voff) * SoInv;
+        Rx = ((nunchuck.accelX * VddStep) - Voff) * SoInv - 0.05;
+        Ry = ((nunchuck.accelY * VddStep) - Voff) * SoInv - 0.03;
         Rz = ((nunchuck.accelZ * VddStep) - Voff) * SoInv;
         
-        float ax = -1 * atan(Rx / sqrt(pow(Ry,2) + pow(Rz,2))) * radToDeg;
-        float ay = -1 * atan(Ry / sqrt(pow(Rx,2) + pow(Rz,2))) * radToDeg;
-        
-                            
-        /* Using negatives for Gyro since it's installed opposite as it should*/
-        pitch_angle = 0.92 * (pitch_angle - wmp.pitch * dt) + 0.08 * ax;
-        roll_angle  = 0.92 * (roll_angle  - wmp.roll  * dt) + 0.08 * ay;
+        ax = atan(Rx / sqrt(pow(Ry,2) + pow(Rz,2))) * radToDeg;
+        ay = atan(Ry / sqrt(pow(Rx,2) + pow(Rz,2))) * radToDeg;
+                
+        pitch_angle = 0.02 * ay + 0.98 * (pitch_angle + wmp.pitch * dt);
+        roll_angle  = 0.02 * ax + 0.98 * (roll_angle  + wmp.roll  * dt); //negated due to IMU orientation
         yaw_angle   = yaw_angle + wmp.yaw * dt;
-        
-        Serial.print((int)yaw_angle); tab();
-        Serial.print((int)pitch_angle); tab();
-        Serial.print((int)roll_angle); tab();
-        Serial.println(Rz);
+
+//        float vals[] = {ay, ax, wmp.pitch, wmp.roll, pitch_angle, roll_angle};
+//        printVals(vals,sizeof(vals)/sizeof(float),2);
     }
     
     if (calc==10) {
@@ -151,8 +149,19 @@ void loop()
         calc=0;
     }
 }
-
-void tab()
-{
-    Serial.print("\t");
-}
+    
+//void printVals(float vals[], int idx, int tabidx)
+//{   
+//    for (int x = 0; x < idx; x++) {
+//        if(x%tabidx==0 && x>0) {
+//            Serial.print("|"); tab();
+//        }
+//        Serial.print(vals[x]); tab();
+//    }
+//    Serial.println();
+//}
+//
+//void tab()
+//{
+//    Serial.print("\t");
+//}
