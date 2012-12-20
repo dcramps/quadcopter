@@ -1,16 +1,4 @@
-Roll
-Forward == Positive
-
-Pitch
-Left == Negative
-
-Yaw
-Left == Negative
-
-
-
-
-Arduino
+Arduino 
 Blue    Green
 A5      A4
 Clock   Data
@@ -25,6 +13,26 @@ Mid --> Edge
 1	2	3	4	Empty	6
 Nothing	GND	Data	Clock	Nothing	3.3v
 
+
+LOL IMU DIAGRAM LOL
+
+                  /\
+                  ||
+                  || (+ Pitch)
+    /¯\ (- Yaw)        (+ Yaw) /¯\
+   \/         __|¯¯¯¯|__         \/
+             |          |
+             |    M+    |
+             |          |
+              ]¯¯¯¯¯¯¯¯[
+<--- (+ Roll) |        | (- Roll) --->
+              |   NC   |
+              |        |
+              |________|
+
+                  || (- Pitch)
+                  ||
+                  \/
 
 Sensitivity = 210
 
