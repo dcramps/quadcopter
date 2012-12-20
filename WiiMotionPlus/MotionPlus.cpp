@@ -34,17 +34,17 @@ void MotionPlus::update()
     data[4] = Wire.read();
     data[5] = Wire.read();
     
-    int slowPitch = data[3] & 1;
-    int slowYaw = data[3] & 2;
-    int slowRoll = data[4] & 2;
+    int slowRoll  = data[3] & 1;
+    int slowYaw   = data[3] & 2;
+    int slowPitch = data[4] & 2;
         
     yawScale = (slowYaw) ? SLOWSCALE : FASTSCALE;
-    pitchScale = (slowPitch) ? SLOWSCALE : FASTSCALE;
     rollScale = (slowRoll) ? SLOWSCALE : FASTSCALE;
+    pitchScale = (slowPitch) ? SLOWSCALE : FASTSCALE;
     
     yaw =   (((data[3] >> 2) << 8) + data[0] - yaw0)   / yawScale;
-    pitch = (((data[4] >> 2) << 8) + data[1] - pitch0) / pitchScale;
-    roll =  (((data[5] >> 2) << 8) + data[2] - roll0)  / rollScale;
+    roll =  (((data[4] >> 2) << 8) + data[1] - pitch0) / rollScale;
+    pitch = -1 * (((data[5] >> 2) << 8) + data[2] - roll0)  / pitchScale; //Negated because of IMU orientation
 }
   
 void MotionPlus::_sendByte(byte address, byte data, byte location)
@@ -80,8 +80,8 @@ void MotionPlus::_calibrate(int calibrationCount)
         data[4] = Wire.read();
         data[5] = Wire.read();
         
-        yaw0 +=   (((data[3] >> 2) << 8) + data[0]) / calibrationCount;
-        pitch0 += (((data[4] >> 2) << 8) + data[1]) / calibrationCount;
-        roll0 +=  (((data[5] >> 2) << 8) + data[2]) / calibrationCount;
-    }
+        yaw0   += (((data[3] >> 2) << 8) + data[0]) / calibrationCount;
+        roll0  += (((data[4] >> 2) << 8) + data[1]) / calibrationCount;
+        pitch0 += (((data[5] >> 2) << 8) + data[2]) / calibrationCount;
+    }    
 }
