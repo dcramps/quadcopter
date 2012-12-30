@@ -5,6 +5,18 @@
 #include <WiFly.h>
 #include <Wire.h>
 #include <math.h>
+#include <Servo.h>
+
+
+/* Motors */
+#define MOTOR_1_PIN 3
+#define MOTOR_2_PIN 9
+#define MOTOR_3_PIN 5
+#define MOTOR_4_PIN 6
+Servo m1;
+Servo m2;
+Servo m3;
+Servo m4;
 
 /* Constants 
  * Values derived from the datasheet
@@ -48,8 +60,6 @@ float yaw_angle = 0.0;
 byte server[] = { 192, 168, 1, 3 };
 WiFlyClient client(server, 8000);
 
-
-
 /*
  * WMP and Nunchuck communicate on the same I²C address
  * so use two NPN transistors to switch the data line
@@ -73,12 +83,16 @@ void switchNunchuck()
 
 void setup()
 {
-    //Serial.begin(115200);
+    Serial.begin(115200);
     //Serial.println("SETUP\tStarting...");
 
     /*Setup Pins*/
     pinMode(MOTIONPLUS, OUTPUT);
     pinMode(NUNCHUCK, OUTPUT);
+    m1.attach(MOTOR_1_PIN);
+    m2.attach(MOTOR_2_PIN);
+    m3.attach(MOTOR_3_PIN);
+    m4.attach(MOTOR_4_PIN);
 
     /*Necessary?*/
     digitalWrite(NUNCHUCK, HIGH);
@@ -94,6 +108,13 @@ void setup()
     nunchuck.init();
     //Serial.println("Accel enabled");
           
+    /* Arm ESCs */
+    m1.writeMicroseconds(1000);
+    m2.writeMicroseconds(1000);
+    m3.writeMicroseconds(1000);
+    m4.writeMicroseconds(1000);
+    delay(5000);
+    
     /* Client */
     //Serial.println("SETUP\tStarting WiFly");
     WiFly.begin();
@@ -113,6 +134,7 @@ void setup()
     
     timer = millis();
 }
+int motor=1000;
 
 void loop()
 {
@@ -162,6 +184,12 @@ void loop()
             client.write((byte)(roll_angle));     
         }
         calc=0;
+        motor++;
+        Serial.println(motor);
+        m1.writeMicroseconds(motor);
+        m2.writeMicroseconds(motor);
+        m3.writeMicroseconds(motor);
+        m4.writeMicroseconds(motor);
     }
 }
     

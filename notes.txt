@@ -13,6 +13,11 @@ Mid --> Edge
 1	2	3	4	Empty	6
 Nothing	GND	Data	Clock	Nothing	3.3v
 
+Motors:
+
+1 2
+ X
+3 4
 
 LOL IMU DIAGRAM LOL
 
