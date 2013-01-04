@@ -6,7 +6,7 @@
 #include <Wire.h>
 #include <math.h>
 #include <Servo.h>
-
+#include <PID_v1.h>
 
 /* Motors */
 #define MOTOR_1_PIN 3
@@ -53,11 +53,11 @@ Nunchuck nunchuck = Nunchuck();
 
 /* Output data */
 float pitch_angle = 0.0;
-float roll_angle = 0.0;
+double roll_angle = 0.0;
 float yaw_angle = 0.0;
 
 /* Web Client - Send gyro data to Processing server */
-byte server[] = { 192, 168, 1, 3 };
+byte server[] = { 192, 168, 1, 12 };
 WiFlyClient client(server, 8000);
 
 /*
@@ -81,6 +81,26 @@ void switchNunchuck()
     digitalWrite(NUNCHUCK, HIGH);
 }
 
+const int maxThrottle = 1500; //for now never changing because no input
+const int minThrottle = 1110; //motors turn on around here?
+double setPoint = 0; //for now never changing because no input
+
+double consKp = 1.0;
+double consKi = 0.0;
+double consKd = 0.03;
+
+double aggKp = 1.8;
+double aggKi = 0.0;
+double aggKd = 0.13;
+
+
+double roll_output;
+int throttle1, throttle2, throttle3, throttle4;
+
+PID rollPID(&roll_angle, &roll_output, &setPoint, consKp, consKi, consKd, DIRECT);
+//PID pitchPID;
+//PID yawPID;
+
 void setup()
 {
     Serial.begin(115200);
@@ -93,6 +113,11 @@ void setup()
     m2.attach(MOTOR_2_PIN);
     m3.attach(MOTOR_3_PIN);
     m4.attach(MOTOR_4_PIN);
+    
+    /*Setup PIDs*/
+    rollPID.SetMode(AUTOMATIC);
+    rollPID.SetSampleTime(10);
+    rollPID.SetOutputLimits(-200, 200);
 
     /*Necessary?*/
     digitalWrite(NUNCHUCK, HIGH);
@@ -113,7 +138,6 @@ void setup()
     m2.writeMicroseconds(1000);
     m3.writeMicroseconds(1000);
     m4.writeMicroseconds(1000);
-    delay(5000);
     
     /* Client */
     //Serial.println("SETUP\tStarting WiFly");
@@ -134,17 +158,18 @@ void setup()
     
     timer = millis();
 }
-int motor=1000;
+
 
 void loop()
 {
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
-    
+
+    rollPID.Compute();
+
     if (diff > 9) {
         calc++;
         timer = millis();
-        
         
         /*Gyro*/
         switchWmp();
@@ -164,7 +189,37 @@ void loop()
         pitch_angle = 0.02 * ay + 0.98 * (pitch_angle + wmp.pitch * dt);
         roll_angle  = 0.02 * ax + 0.98 * (roll_angle  + wmp.roll  * dt); //negated due to IMU orientation
         yaw_angle   = yaw_angle + wmp.yaw * dt;
+        
+        double gap = abs(setPoint - roll_angle);
+        
+        if (gap<10) {
+            rollPID.SetTunings(consKp, consKi, consKd);
+        } else {
+            rollPID.SetTunings(aggKp, aggKi, aggKd);
+        }
+        
+        //throttle3/throttle2
+        //tilted right, PID is adding
+        //3 --- 2
+        //decrease 3, increase 2.
+        if (roll_angle < 0.0) {
+            throttle2 = constrain(throttle2 + roll_output, minThrottle, maxThrottle);
+            throttle3 = constrain(throttle3 - roll_output, minThrottle, maxThrottle);
+        } else {
+        //tilted left, PID is negating
+        //3 --- 2
+        //increase 3, decrease 2
+            throttle2 = constrain(throttle2 + roll_output, minThrottle, maxThrottle);
+            throttle3 = constrain(throttle3 - roll_output, minThrottle, maxThrottle);
+            
+        }
+        
+        float v[4] = {roll_angle, roll_output, throttle3, throttle2};
+        printVals(v, 4, 2);
 
+        m2.writeMicroseconds(throttle2);
+        m3.writeMicroseconds(throttle3);
+        
 //        float vals[] = {ay, ax, wmp.pitch, wmp.roll, pitch_angle, roll_angle};
 //        printVals(vals,sizeof(vals)/sizeof(float),2);
     }
@@ -184,27 +239,23 @@ void loop()
             client.write((byte)(roll_angle));     
         }
         calc=0;
-        motor++;
-        Serial.println(motor);
-        m1.writeMicroseconds(motor);
-        m2.writeMicroseconds(motor);
-        m3.writeMicroseconds(motor);
-        m4.writeMicroseconds(motor);
     }
 }
-    
-//void printVals(float vals[], int idx, int tabidx)
-//{   
-//    for (int x = 0; x < idx; x++) {
-//        if(x%tabidx==0 && x>0) {
-//            Serial.print("|"); tab();
-//        }
-//        Serial.print(vals[x]); tab();
-//    }
-//    Serial.println();
-//}
-//
-//void tab()
-//{
-//    Serial.print("\t");
-//}
+ 
+   
+void printVals(float vals[], int idx, int tabidx)
+{   
+    for (int x = 0; x < idx; x++) {
+        if(x%tabidx==0 && x>0) {
+            Serial.print("|"); tab();
+        }
+        Serial.print(vals[x]); tab();
+    }
+    Serial.println();
+}
+
+void tab()
+{
+    Serial.print("\t");
+}
+
