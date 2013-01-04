@@ -31,7 +31,7 @@ void draw()
     translate(width/2.0, height/1.25);
     rotateX(pitch);
     rotateZ(-roll);
-    rotateY(-yaw + radians(45));
+    rotateY(-yaw);
     fill(255, 0, 0);
     box(350, 25, 25);
     popMatrix();
@@ -41,7 +41,7 @@ void draw()
     translate(width/2.0, height/1.25);
     rotateX(pitch);
     rotateZ(-roll);
-    rotateY(-yaw + radians(45));
+    rotateY(-yaw);
     fill(255, 255, 255);
     box(25, 24, 350);
     popMatrix();
