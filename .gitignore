@@ -161,3 +161,21 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+PID_Basic/PID_Basic.ino
+
+libraries/PID_v1/Examples/PID_AdaptiveTunings/PID_AdaptiveTunings.ino
+
+libraries/PID_v1/Examples/PID_RelayOutput/PID_RelayOutput.ino
+
+libraries/PID_v1/Examples/PID_Basic/PID_Basic.ino
+
+libraries/PID_v1/PID_v1.cpp
+
+libraries/PID_v1/PID_v1.h
+
+libraries/PID_v1/keywords.txt
+
+libraries/WiFly/
+
+libraries/readme.txt
