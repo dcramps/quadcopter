@@ -1,14 +1,9 @@
 #include <openIMU.h>
-#include <PID_AutoTune_v0.h>
 #include "MotionPlus.h"
 #include "Nunchuck.h"
 #include <SPI.h>
 #include <WiFly.h>
 #include <Wire.h>
-#include <math.h>
-#include <Servo.h>
-#include <PID_v1.h>
-
 
 #define WIFLY 0 //1 = client, 2 = server
 
@@ -20,16 +15,6 @@ float accelZ = 0;
 float gyroX = 0;
 float gyroY = 0;
 float gyroZ = 0;
-
-/* Motors */
-//#define MOTOR_1_PIN 3
-//#define MOTOR_2_PIN 9
-//#define MOTOR_3_PIN 5
-//#define MOTOR_4_PIN 6
-//Servo m1;
-//Servo m2;
-//Servo m3;
-//Servo m4;
 
 /* Constants 
  * Values derived from the datasheet
@@ -62,11 +47,6 @@ MotionPlus wmp = MotionPlus();
 #define NUNCHUCK 4
 Nunchuck nunchuck = Nunchuck();
 
-/* Output data */
-//double pitch_angle = 0.0;
-//double roll_angle = 0.0;
-//double yaw_angle = 0.0;
-
 #if WIFLY == 1
     /* Web Client - Send gyro data to Processing server */
     char passphrase[] = "6476291353";
@@ -79,23 +59,6 @@ Nunchuck nunchuck = Nunchuck();
     char ssid[] = "DRONE";
     unsigned int bytesAvailable = 0;
 #endif
-
-/*PID things*/
-//const int maxThrottle = 1600; //for now never changing because no input
-//const int minThrottle = 1200; //motors turn on around here?
-//double setPoint = 0; //for now never changing because no input
-
-//double consKp = 4.5;
-//double consKi = 0.2;
-//double consKd = 0.15;
-
-//double roll_output;
-
-//int throttle1, throttle2, throttle3, throttle4;
-
-//PID rollPID(&roll_angle, &roll_output, &setPoint, consKp, consKi, consKd, DIRECT);
-//PID pitchPID;
-//PID yawPID;
 
 /* OpenIMU */
 openIMU imu(&gyroX,&gyroY,&gyroZ,&accelX,&accelY,&accelZ,&dt);
@@ -150,15 +113,6 @@ void setup()
     /*Setup Pins*/
     pinMode(MOTIONPLUS, OUTPUT);
     pinMode(NUNCHUCK, OUTPUT);
-//    m1.attach(MOTOR_1_PIN);
-//    m2.attach(MOTOR_2_PIN);
-//    m3.attach(MOTOR_3_PIN);
-//    m4.attach(MOTOR_4_PIN);
-
-    /*Setup PIDs*/
-//    rollPID.SetMode(AUTOMATIC);
-//    rollPID.SetSampleTime(10);
-//    rollPID.SetOutputLimits(-200, 200);
 
     /*Necessary?*/
     digitalWrite(NUNCHUCK, HIGH);
@@ -223,7 +177,7 @@ void loop()
         imu.IMUupdate();
     }
     
-    if (calc==2) {
+    if (calc==5) {
         calc=0;
         imu.GetEuler();
         Serial.print(accelX,3);
@@ -240,36 +194,6 @@ void loop()
         comma();
         Serial.println(imu.pitch,3);
     }
-
-//    //    if (bytesAvailable %12 == 0 && bytesAvailable > 0) {
-//    //        Serial.println(bytesAvailable);
-//    //        bytesAvailable=0;
-//    //    }
-//    //
-//    //    if (bytesAvailable > 0) {
-//    //        Serial.println(bytesAvailable);
-//    //    }
-//    //    delay(1);
-//
-//
-//    if (calc==10) {
-//        if (client.connected()) {
-//            //yaw
-//            client.write((byte)((int16_t)yaw_angle >> 8));
-//            client.write((byte)((int16_t)yaw_angle));
-//
-//            //pitch
-//            client.write((byte)((int16_t)pitch_angle >> 8));
-//            client.write((byte)((int16_t)pitch_angle));
-//
-//            //roll
-//            client.write((byte)((int16_t)roll_angle >> 8));
-//            client.write((byte)((int16_t)roll_angle));     
-//        }
-//        calc=0;
-//    }
-
-
 }
 
 void tab()
