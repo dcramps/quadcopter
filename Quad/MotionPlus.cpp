@@ -9,7 +9,7 @@
 
 void MotionPlus::init()
 {
-    MotionPlus::init(10);
+    MotionPlus::init(500);
 }
 
 void MotionPlus::init(int calibrationCount)
@@ -25,7 +25,7 @@ void MotionPlus::update()
     
     MotionPlus::_sendZero(ADDRESS);
     Wire.requestFrom(ADDRESS,6);
-    
+
     int data[6];
     data[0] = Wire.read();
     data[1] = Wire.read();
@@ -33,18 +33,18 @@ void MotionPlus::update()
     data[3] = Wire.read();
     data[4] = Wire.read();
     data[5] = Wire.read();
-    
+
     int slowRoll  = data[3] & 1;
     int slowYaw   = data[3] & 2;
     int slowPitch = data[4] & 2;
-        
-    yawScale = (slowYaw) ? SLOWSCALE : FASTSCALE;
-    rollScale = (slowRoll) ? SLOWSCALE : FASTSCALE;
+
+    yawScale   = (slowYaw)   ? SLOWSCALE : FASTSCALE;
+    rollScale  = (slowRoll)  ? SLOWSCALE : FASTSCALE;
     pitchScale = (slowPitch) ? SLOWSCALE : FASTSCALE;
-    
-    yaw =   (((data[3] >> 2) << 8) + data[0] - yaw0)   / yawScale;
-    roll =  (((data[4] >> 2) << 8) + data[1] - pitch0) / rollScale;
-    pitch = -1 * (((data[5] >> 2) << 8) + data[2] - roll0)  / pitchScale; //Negated because of IMU orientation
+
+    yaw_r   =      (((data[3] >> 2) << 8) + data[0] - yaw0)   / yawScale;
+    roll_r  = -1 * (((data[4] >> 2) << 8) + data[1] - pitch0) / rollScale;
+    pitch_r =      (((data[5] >> 2) << 8) + data[2] - roll0)  / pitchScale;
 }
   
 void MotionPlus::_sendByte(byte address, byte data, byte location)
@@ -79,9 +79,14 @@ void MotionPlus::_calibrate(int calibrationCount)
         data[3] = Wire.read();
         data[4] = Wire.read();
         data[5] = Wire.read();
-        
-        yaw0   += (((data[3] >> 2) << 8) + data[0]) / calibrationCount;
-        roll0  += (((data[4] >> 2) << 8) + data[1]) / calibrationCount;
-        pitch0 += (((data[5] >> 2) << 8) + data[2]) / calibrationCount;
-    }    
+        yaw0   += (((data[3] >> 2) << 8) + data[0]);
+        roll0  += (((data[4] >> 2) << 8) + data[1]);
+        pitch0 += (((data[5] >> 2) << 8) + data[2]);
+        delay(2);
+    }
+
+
+    yaw0   /= calibrationCount;
+    roll0  /= calibrationCount;
+    pitch0 /= calibrationCount;
 }

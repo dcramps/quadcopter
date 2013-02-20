@@ -67,6 +67,6 @@ void draw()
         roll  = radians((data[4] << 8) + (data[5] & 0xFF));
       }
     } else {
-      println("No client");
+//      println("No client");
     } 
 }

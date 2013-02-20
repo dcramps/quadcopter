@@ -31,9 +31,9 @@ void Nunchuck::update()
     data[4] = Wire.read();
     data[5] = Wire.read();
     
-    Nunchuck::accelX = data[2] * 2 * 2 + ((data[5] >> 2) & 1) * 2 + ((data[5] >> 3) & 1) - accelX0;
-    Nunchuck::accelY = data[3] * 2 * 2 + ((data[5] >> 4) & 1) * 2 + ((data[5] >> 5) & 1) - accelY0;
-    Nunchuck::accelZ = data[4] * 2 * 2 + ((data[5] >> 6) & 1) * 2 + ((data[5] >> 7) & 1) - accelZ0;
+    accelX = data[3] * 2 * 2 + ((data[5] >> 4) & 1) * 2 + ((data[5] >> 5) & 1) - accelX0;
+    accelY = data[2] * 2 * 2 + ((data[5] >> 2) & 1) * 2 + ((data[5] >> 3) & 1) - accelY0;
+    accelZ = data[4] * 2 * 2 + ((data[5] >> 6) & 1) * 2 + ((data[5] >> 7) & 1) - accelZ0;
     
     Nunchuck::_sendZero(ADDRESS);
 }

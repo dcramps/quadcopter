@@ -1,0 +1,491 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		43260FD3169A926600B048F5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43260FD2169A926600B048F5 /* UIKit.framework */; };
+		43260FD5169A926600B048F5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43260FD4169A926600B048F5 /* Foundation.framework */; };
+		43260FD7169A926600B048F5 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43260FD6169A926600B048F5 /* CoreGraphics.framework */; };
+		43260FDD169A926600B048F5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43260FDB169A926600B048F5 /* InfoPlist.strings */; };
+		43260FDF169A926600B048F5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 43260FDE169A926600B048F5 /* main.m */; };
+		43260FE3169A926600B048F5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 43260FE2169A926600B048F5 /* AppDelegate.m */; };
+		43260FE5169A926600B048F5 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FE4169A926600B048F5 /* Default.png */; };
+		43260FE7169A926600B048F5 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FE6169A926600B048F5 /* Default@2x.png */; };
+		43260FE9169A926600B048F5 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FE8169A926600B048F5 /* Default-568h@2x.png */; };
+		43260FEC169A926600B048F5 /* MainStoryboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 43260FEA169A926600B048F5 /* MainStoryboard.storyboard */; };
+		43260FEF169A926600B048F5 /* FirstViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 43260FEE169A926600B048F5 /* FirstViewController.m */; };
+		43260FF1169A926600B048F5 /* first.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FF0169A926600B048F5 /* first.png */; };
+		43260FF3169A926600B048F5 /* first@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FF2169A926600B048F5 /* first@2x.png */; };
+		43260FF6169A926600B048F5 /* SecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 43260FF5169A926600B048F5 /* SecondViewController.m */; };
+		43260FF8169A926600B048F5 /* second.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FF7169A926600B048F5 /* second.png */; };
+		43260FFA169A926600B048F5 /* second@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 43260FF9169A926600B048F5 /* second@2x.png */; };
+		43261002169A926600B048F5 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43261001169A926600B048F5 /* SenTestingKit.framework */; };
+		43261003169A926600B048F5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43260FD2169A926600B048F5 /* UIKit.framework */; };
+		43261004169A926600B048F5 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43260FD4169A926600B048F5 /* Foundation.framework */; };
+		4326100C169A926600B048F5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4326100A169A926600B048F5 /* InfoPlist.strings */; };
+		4326100F169A926600B048F5 /* PIDTunerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4326100E169A926600B048F5 /* PIDTunerTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		43261005169A926600B048F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 43260FC5169A926600B048F5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 43260FCD169A926600B048F5;
+			remoteInfo = PIDTuner;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		43260FCE169A926600B048F5 /* PIDTuner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PIDTuner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		43260FD2169A926600B048F5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		43260FD4169A926600B048F5 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		43260FD6169A926600B048F5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		43260FDA169A926600B048F5 /* PIDTuner-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PIDTuner-Info.plist"; sourceTree = "<group>"; };
+		43260FDC169A926600B048F5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		43260FDE169A926600B048F5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		43260FE0169A926600B048F5 /* PIDTuner-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PIDTuner-Prefix.pch"; sourceTree = "<group>"; };
+		43260FE1169A926600B048F5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		43260FE2169A926600B048F5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		43260FE4169A926600B048F5 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
+		43260FE6169A926600B048F5 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
+		43260FE8169A926600B048F5 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		43260FEB169A926600B048F5 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard.storyboard; sourceTree = "<group>"; };
+		43260FED169A926600B048F5 /* FirstViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FirstViewController.h; sourceTree = "<group>"; };
+		43260FEE169A926600B048F5 /* FirstViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FirstViewController.m; sourceTree = "<group>"; };
+		43260FF0169A926600B048F5 /* first.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = first.png; sourceTree = "<group>"; };
+		43260FF2169A926600B048F5 /* first@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "first@2x.png"; sourceTree = "<group>"; };
+		43260FF4169A926600B048F5 /* SecondViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecondViewController.h; sourceTree = "<group>"; };
+		43260FF5169A926600B048F5 /* SecondViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SecondViewController.m; sourceTree = "<group>"; };
+		43260FF7169A926600B048F5 /* second.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = second.png; sourceTree = "<group>"; };
+		43260FF9169A926600B048F5 /* second@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "second@2x.png"; sourceTree = "<group>"; };
+		43261000169A926600B048F5 /* PIDTunerTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PIDTunerTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		43261001169A926600B048F5 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		43261009169A926600B048F5 /* PIDTunerTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "PIDTunerTests-Info.plist"; sourceTree = "<group>"; };
+		4326100B169A926600B048F5 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		4326100D169A926600B048F5 /* PIDTunerTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PIDTunerTests.h; sourceTree = "<group>"; };
+		4326100E169A926600B048F5 /* PIDTunerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PIDTunerTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		43260FCB169A926600B048F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43260FD3169A926600B048F5 /* UIKit.framework in Frameworks */,
+				43260FD5169A926600B048F5 /* Foundation.framework in Frameworks */,
+				43260FD7169A926600B048F5 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43260FFC169A926600B048F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43261002169A926600B048F5 /* SenTestingKit.framework in Frameworks */,
+				43261003169A926600B048F5 /* UIKit.framework in Frameworks */,
+				43261004169A926600B048F5 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		43260FC3169A926600B048F5 = {
+			isa = PBXGroup;
+			children = (
+				43260FD8169A926600B048F5 /* PIDTuner */,
+				43261007169A926600B048F5 /* PIDTunerTests */,
+				43260FD1169A926600B048F5 /* Frameworks */,
+				43260FCF169A926600B048F5 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		43260FCF169A926600B048F5 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				43260FCE169A926600B048F5 /* PIDTuner.app */,
+				43261000169A926600B048F5 /* PIDTunerTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		43260FD1169A926600B048F5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				43260FD2169A926600B048F5 /* UIKit.framework */,
+				43260FD4169A926600B048F5 /* Foundation.framework */,
+				43260FD6169A926600B048F5 /* CoreGraphics.framework */,
+				43261001169A926600B048F5 /* SenTestingKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		43260FD8169A926600B048F5 /* PIDTuner */ = {
+			isa = PBXGroup;
+			children = (
+				43260FE1169A926600B048F5 /* AppDelegate.h */,
+				43260FE2169A926600B048F5 /* AppDelegate.m */,
+				43260FEA169A926600B048F5 /* MainStoryboard.storyboard */,
+				43260FED169A926600B048F5 /* FirstViewController.h */,
+				43260FEE169A926600B048F5 /* FirstViewController.m */,
+				43260FF0169A926600B048F5 /* first.png */,
+				43260FF2169A926600B048F5 /* first@2x.png */,
+				43260FF4169A926600B048F5 /* SecondViewController.h */,
+				43260FF5169A926600B048F5 /* SecondViewController.m */,
+				43260FF7169A926600B048F5 /* second.png */,
+				43260FF9169A926600B048F5 /* second@2x.png */,
+				43260FD9169A926600B048F5 /* Supporting Files */,
+			);
+			path = PIDTuner;
+			sourceTree = "<group>";
+		};
+		43260FD9169A926600B048F5 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				43260FDA169A926600B048F5 /* PIDTuner-Info.plist */,
+				43260FDB169A926600B048F5 /* InfoPlist.strings */,
+				43260FDE169A926600B048F5 /* main.m */,
+				43260FE0169A926600B048F5 /* PIDTuner-Prefix.pch */,
+				43260FE4169A926600B048F5 /* Default.png */,
+				43260FE6169A926600B048F5 /* Default@2x.png */,
+				43260FE8169A926600B048F5 /* Default-568h@2x.png */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		43261007169A926600B048F5 /* PIDTunerTests */ = {
+			isa = PBXGroup;
+			children = (
+				4326100D169A926600B048F5 /* PIDTunerTests.h */,
+				4326100E169A926600B048F5 /* PIDTunerTests.m */,
+				43261008169A926600B048F5 /* Supporting Files */,
+			);
+			path = PIDTunerTests;
+			sourceTree = "<group>";
+		};
+		43261008169A926600B048F5 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				43261009169A926600B048F5 /* PIDTunerTests-Info.plist */,
+				4326100A169A926600B048F5 /* InfoPlist.strings */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		43260FCD169A926600B048F5 /* PIDTuner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43261012169A926600B048F5 /* Build configuration list for PBXNativeTarget "PIDTuner" */;
+			buildPhases = (
+				43260FCA169A926600B048F5 /* Sources */,
+				43260FCB169A926600B048F5 /* Frameworks */,
+				43260FCC169A926600B048F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PIDTuner;
+			productName = PIDTuner;
+			productReference = 43260FCE169A926600B048F5 /* PIDTuner.app */;
+			productType = "com.apple.product-type.application";
+		};
+		43260FFF169A926600B048F5 /* PIDTunerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 43261015169A926600B048F5 /* Build configuration list for PBXNativeTarget "PIDTunerTests" */;
+			buildPhases = (
+				43260FFB169A926600B048F5 /* Sources */,
+				43260FFC169A926600B048F5 /* Frameworks */,
+				43260FFD169A926600B048F5 /* Resources */,
+				43260FFE169A926600B048F5 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				43261006169A926600B048F5 /* PBXTargetDependency */,
+			);
+			name = PIDTunerTests;
+			productName = PIDTunerTests;
+			productReference = 43261000169A926600B048F5 /* PIDTunerTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		43260FC5169A926600B048F5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0450;
+				ORGANIZATIONNAME = dc;
+			};
+			buildConfigurationList = 43260FC8169A926600B048F5 /* Build configuration list for PBXProject "PIDTuner" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 43260FC3169A926600B048F5;
+			productRefGroup = 43260FCF169A926600B048F5 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				43260FCD169A926600B048F5 /* PIDTuner */,
+				43260FFF169A926600B048F5 /* PIDTunerTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		43260FCC169A926600B048F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43260FDD169A926600B048F5 /* InfoPlist.strings in Resources */,
+				43260FE5169A926600B048F5 /* Default.png in Resources */,
+				43260FE7169A926600B048F5 /* Default@2x.png in Resources */,
+				43260FE9169A926600B048F5 /* Default-568h@2x.png in Resources */,
+				43260FEC169A926600B048F5 /* MainStoryboard.storyboard in Resources */,
+				43260FF1169A926600B048F5 /* first.png in Resources */,
+				43260FF3169A926600B048F5 /* first@2x.png in Resources */,
+				43260FF8169A926600B048F5 /* second.png in Resources */,
+				43260FFA169A926600B048F5 /* second@2x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43260FFD169A926600B048F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4326100C169A926600B048F5 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		43260FFE169A926600B048F5 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		43260FCA169A926600B048F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43260FDF169A926600B048F5 /* main.m in Sources */,
+				43260FE3169A926600B048F5 /* AppDelegate.m in Sources */,
+				43260FEF169A926600B048F5 /* FirstViewController.m in Sources */,
+				43260FF6169A926600B048F5 /* SecondViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		43260FFB169A926600B048F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4326100F169A926600B048F5 /* PIDTunerTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		43261006169A926600B048F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 43260FCD169A926600B048F5 /* PIDTuner */;
+			targetProxy = 43261005169A926600B048F5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		43260FDB169A926600B048F5 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				43260FDC169A926600B048F5 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		43260FEA169A926600B048F5 /* MainStoryboard.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				43260FEB169A926600B048F5 /* en */,
+			);
+			name = MainStoryboard.storyboard;
+			sourceTree = "<group>";
+		};
+		4326100A169A926600B048F5 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				4326100B169A926600B048F5 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		43261010169A926600B048F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: CollegeMobile, Inc.";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: CollegeMobile, Inc.";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PROVISIONING_PROFILE = "6E291780-B28B-4F9D-8C49-628954C075E6";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6E291780-B28B-4F9D-8C49-628954C075E6";
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		43261011169A926600B048F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: CollegeMobile, Inc.";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: CollegeMobile, Inc.";
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "6E291780-B28B-4F9D-8C49-628954C075E6";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "6E291780-B28B-4F9D-8C49-628954C075E6";
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		43261013169A926600B048F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "PIDTuner/PIDTuner-Prefix.pch";
+				INFOPLIST_FILE = "PIDTuner/PIDTuner-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		43261014169A926600B048F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "PIDTuner/PIDTuner-Prefix.pch";
+				INFOPLIST_FILE = "PIDTuner/PIDTuner-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		43261016169A926600B048F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/PIDTuner.app/PIDTuner";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
+					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "PIDTuner/PIDTuner-Prefix.pch";
+				INFOPLIST_FILE = "PIDTunerTests/PIDTunerTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		43261017169A926600B048F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/PIDTuner.app/PIDTuner";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
+					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "PIDTuner/PIDTuner-Prefix.pch";
+				INFOPLIST_FILE = "PIDTunerTests/PIDTunerTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		43260FC8169A926600B048F5 /* Build configuration list for PBXProject "PIDTuner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43261010169A926600B048F5 /* Debug */,
+				43261011169A926600B048F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		43261012169A926600B048F5 /* Build configuration list for PBXNativeTarget "PIDTuner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43261013169A926600B048F5 /* Debug */,
+				43261014169A926600B048F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		43261015169A926600B048F5 /* Build configuration list for PBXNativeTarget "PIDTunerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				43261016169A926600B048F5 /* Debug */,
+				43261017169A926600B048F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 43260FC5169A926600B048F5 /* Project object */;
+}
