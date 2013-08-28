@@ -48,16 +48,17 @@ MotionPlus wmp = MotionPlus();
 Nunchuck nunchuck = Nunchuck();
 
 #if WIFLY == 1
-    /* Web Client - Send gyro data to Processing server */
-    char passphrase[] = "6476291353";
-    char ssid[] = "robot";
-    byte server[] = { 192, 168, 1, 6 };
-    WiFlyClient client(server, 8000);
+/* Web Client - Send gyro data to Processing server */
+char passphrase[] = "6476291353";
+char ssid[] = "robot";
+byte server[] = { 
+    192, 168, 1, 6 };
+WiFlyClient client(server, 8000);
 #elsif WIFLY == 2
-    /* start a server on port 80 */
-    WiFlyServer server(80);
-    char ssid[] = "DRONE";
-    unsigned int bytesAvailable = 0;
+/* start a server on port 80 */
+WiFlyServer server(80);
+char ssid[] = "DRONE";
+unsigned int bytesAvailable = 0;
 #endif
 
 /* OpenIMU */
@@ -88,9 +89,9 @@ void getAccel()
 {
     switchNunchuck();
     nunchuck.update();
-    
-    accelX =       ((nunchuck.accelX * VddStep) - Voff) * SoInv - 0.05;
-    accelY = -1 * (((nunchuck.accelY * VddStep) - Voff) * SoInv - 0.03);
+
+    accelX = -1 * (((nunchuck.accelX * VddStep) - Voff) * SoInv - 0.05);
+    accelY =       ((nunchuck.accelY * VddStep) - Voff) * SoInv - 0.03;
     accelZ = -1 * (((nunchuck.accelZ * VddStep) - Voff) * SoInv);
 }
 
@@ -98,8 +99,8 @@ void getGyro()
 {
     switchWmp();
     wmp.update();    
-    
-    gyroX =       RAD(wmp.roll_r);
+
+    gyroX = -1 *  RAD(wmp.roll_r);
     gyroY = -1 *  RAD(wmp.pitch_r);
     gyroZ =       RAD(wmp.yaw_r);
 }
@@ -128,37 +129,39 @@ void setup()
     nunchuck.init();
     Serial.println("Accel enabled");
 
-    #if WIFLY == 1
-        // Client
-        Serial.println("SETUP\tStarting WiFly");
-        WiFly.begin();
-          
-        if (!WiFly.join(ssid, passphrase)) {
-            //Serial.println("CLIENT\tAssociation failed.");
-            while (1) { }
+#if WIFLY == 1
+    // Client
+    Serial.println("SETUP\tStarting WiFly");
+    WiFly.begin();
+
+    if (!WiFly.join(ssid, passphrase)) {
+        //Serial.println("CLIENT\tAssociation failed.");
+        while (1) { 
         }
-          
-        Serial.println("CLIENT\tConnecting.");
-        if (client.connect()) {
-            Serial.println("CLIENT\tConnected.");
-        } else {
-            Serial.println("CLIENT\tConnection failed.");
-        }
-    #elsif WIFLY == 2
-        WiFly.begin(true);
-        server.begin();
-        
-        if (!WiFly.createAdHocNetwork(ssid)) {
-            while (1) { 
-            } //bad things have happened.
-        }
-    
-        Serial.print("Network is up at ");
-        Serial.println(WiFly.ip());
-    
-        Serial.println("Starting the server");
-        server.begin();
-    #endif
+    }
+
+    Serial.println("CLIENT\tConnecting.");
+    if (client.connect()) {
+        Serial.println("CLIENT\tConnected.");
+    } 
+    else {
+        Serial.println("CLIENT\tConnection failed.");
+    }
+#elsif WIFLY == 2
+    WiFly.begin(true);
+    server.begin();
+
+    if (!WiFly.createAdHocNetwork(ssid)) {
+        while (1) { 
+        } //bad things have happened.
+    }
+
+    Serial.print("Network is up at ");
+    Serial.println(WiFly.ip());
+
+    Serial.println("Starting the server");
+    server.begin();
+#endif
 
     timer = millis();
     Serial.println("Starting loop");
@@ -175,24 +178,28 @@ void loop()
         getAccel();
         getGyro();
         imu.IMUupdate();
-    }
-    
-    if (calc==5) {
+        //    }
+        //    
+        //    if (calc==5) {
         calc=0;
         imu.GetEuler();
-        Serial.print(accelX,3);
-        comma();
-        Serial.print(accelY,3);
-        comma();
-        Serial.print(accelZ,3);
-        comma();
-        Serial.print(gyroX,3);
-        comma();
-        Serial.print(gyroY,3);
+//        comma();
+//        Serial.print(accelX,3);
+//        comma();
+//        Serial.print(accelY,3);
+//        comma();
+//        Serial.print(accelZ,3);
+//        comma();
+//        Serial.print(gyroX,3);
+//        comma();
+//        Serial.print(gyroY,3);
+//        comma();
+//        Serial.print(gyroZ,3);
+//        comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();
+        Serial.print(imu.pitch,3);
         comma();
         Serial.print(imu.roll,3);
-        comma();
-        Serial.println(imu.pitch,3);
+        endl();
     }
 }
 
@@ -205,5 +212,11 @@ void comma()
 {
     Serial.print(",");
 }
+
+void endl()
+{
+    Serial.println();
+}
+
 
 
