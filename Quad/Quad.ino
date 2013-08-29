@@ -34,10 +34,10 @@ const float radToDeg = 180/M_PI;
 const float VddStep = Vdd/1023;
 
 /* loop stuff */
-long timer;       //millis at start of calculation
-int diff;        //difference between now and last cycle
-float dt;         //delta in seconds
-int calc = 0;     //number of calculations since last data transmit
+long  timer = 0; //millis at start of calculation
+int   diff  = 0; //difference between now and last cycle
+float dt    = 0; //delta in seconds
+int   calc  = 0; //number of calculations since last data transmit
 
 /* Wii Motion + */
 #define MOTIONPLUS 2
@@ -51,8 +51,7 @@ Nunchuck nunchuck = Nunchuck();
 /* Web Client - Send gyro data to Processing server */
 char passphrase[] = "6476291353";
 char ssid[] = "robot";
-byte server[] = { 
-    192, 168, 1, 6 };
+byte server[] = { 192, 168, 1, 6 };
 WiFlyClient client(server, 8000);
 #elsif WIFLY == 2
 /* start a server on port 80 */
