@@ -75,3 +75,29 @@ x_angle = atan(ax/sqrt(pow(ay,2)+pow(az,2)))*(180/M_PI);
 y_angle = atan(ay/sqrt(pow(ax,2)+pow(az,2)))*(180/M_PI);
 z_angle = atan(sqrt(pow(ay,2)+pow(ax,2))/az)*(180/M_PI);
 
+
+For openIMU to work, magnitude check should be as follows (from openIMU.cpp)
+
+  //make sure that the total sum of gravity is 1 +/- .5gs
+  //this filter works based on the assumption that only gravity is being detected
+  if ((magnitude < 1.5) && (magnitude > 0.5)){
+  
+  
+Gyro values
+gyroX (roll)  is negated
+gyroY (pitch) is negated
+gyroZ (yaw)   is not (?) negated <--have not figured this out yet.
+
+Accel values
+accelX is negated
+accelY is not negated
+accelZ is negated
+
+
+
+
+
+
+
+
+
