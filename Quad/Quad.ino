@@ -3,7 +3,7 @@
 #include "MotionPlus.h"
 #include "Nunchuck.h"
 #include <SPI.h>
-#include <WiFly.h>
+//#include <WiFly.h>
 #include <Wire.h>
 #include <Servo.h>
 
@@ -13,8 +13,8 @@
 #define NUNCHUCK 4
 #define MOTOR_1_PIN 9
 #define MOTOR_2_PIN 6
-#define MOTOR_3_PIN 5
-#define MOTOR_4_PIN 3
+#define MOTOR_3_PIN 3
+#define MOTOR_4_PIN 5
 
 float accelX = 0;
 float accelY = 0;
@@ -40,19 +40,19 @@ int   diff  = 0; //difference between now and last cycle
 float dt    = 0; //delta in seconds
 int   calc  = 0; //number of calculations since last data transmit
 
-//WiFly stuff
-#if WIFLY == 1
-//Web Client - Send gyro data to Processing server
-char passphrase[] = "6476291353";
-char ssid[] = "robot";
-byte server[] = { 192, 168, 1, 6 };
-WiFlyClient client(server, 8000);
-#elsif WIFLY == 2
-//start a server on port 80
-WiFlyServer server(80);
-char ssid[] = "DRONE";
-unsigned int bytesAvailable = 0;
-#endif
+////WiFly stuff
+//#if WIFLY == 1
+////Web Client - Send gyro data to Processing server
+//char passphrase[] = "6476291353";
+//char ssid[] = "robot";
+//byte server[] = { 192, 168, 1, 6 };
+//WiFlyClient client(server, 8000);
+//#elsif WIFLY == 2
+////start a server on port 80
+//WiFlyServer server(80);
+//char ssid[] = "DRONE";
+//unsigned int bytesAvailable = 0;
+//#endif
 
 //Gyro
 MotionPlus wmp = MotionPlus();
@@ -70,8 +70,8 @@ double out_p;
 double set_r;
 double out_r;
 
-PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 1.56, 0.03, 0.08, DIRECT);
-PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 1.56, 0.03, 0.08, DIRECT);
+PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 3.5, 0.13, 0.08, DIRECT);
+PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 3.5, 0.13, 0.08, DIRECT);
 
 //Motors
 Servo motor1;
@@ -81,8 +81,10 @@ Servo motor4;
 
 void setup()
 {
+    pinMode(13,OUTPUT);
+    digitalWrite(13,HIGH);
+    initMotors();
     Serial.begin(115200);
-    delay(500);
     TWBR = ((F_CPU / 4000000) - 16) / 2;
 
     pinMode(MOTIONPLUS, OUTPUT);
@@ -97,40 +99,59 @@ void setup()
     switchNunchuck();
     nunchuck.init();
 
-#if WIFLY == 1
-    // Client
-    WiFly.begin();
-
-    if (!WiFly.join(ssid, passphrase)) {
-        while (1) {
-        }
-    }
-#elsif WIFLY == 2
-    WiFly.begin(true);
-    server.begin();
-
-    if (!WiFly.createAdHocNetwork(ssid)) {
-        while (1) {
-        } //bad things have happened.
-    }
-
-    server.begin();
-#endif
+//#if WIFLY == 1
+//    // Client
+//    WiFly.begin();
+//
+//    if (!WiFly.join(ssid, passphrase)) {
+//        while (1) {
+//        }
+//    }
+//#elsif WIFLY == 2
+//    WiFly.begin(true);
+//    server.begin();
+//
+//    if (!WiFly.createAdHocNetwork(ssid)) {
+//        while (1) {
+//        } //bad things have happened.
+//    }
+//
+//    server.begin();
+//#endif
 
     timer = millis();
+       
+    pitchPID.SetMode(AUTOMATIC);
+    pitchPID.SetOutputLimits(-1000,1000);
+    pitchPID.SetSampleTime(3);
     
-    initMotors();
-    delay(1000);
+    rollPID.SetMode(AUTOMATIC);
+    rollPID.SetOutputLimits(-1000,1000);
+    rollPID.SetSampleTime(3);
+    
+    delay(2000);
+    digitalWrite(13,LOW);
 }
 
-const int throttleMin = 1150;
+const int throttleMin = 1300;
+int count = 0;
 
 void loop()
 {
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
-
+    count++;
+    if (count>=200 && count<250) {
+        digitalWrite(13,HIGH);
+    }
+    
+    if (count>=250) {
+        count=0;
+        digitalWrite(13,LOW);
+    }
+    
     if (diff >= 3) {
+
         timer = millis();
 
         //get sensor data
@@ -143,9 +164,10 @@ void loop()
 
         //run PID calc
         pitchPID.Compute();
+        rollPID.Compute();
         
         //send to processing
-        SerialSend();
+//        SerialSend();
 
         updateMotors();
     }

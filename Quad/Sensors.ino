@@ -4,21 +4,21 @@
 //between them as needed.
 //Setting a line to HIGH enables it, LOW disables it.
 
-void switchWmp() 
+inline void switchWmp() 
 {
     digitalWrite(NUNCHUCK,   LOW);
     digitalWrite(MOTIONPLUS, LOW);
     digitalWrite(MOTIONPLUS, HIGH);    
 }
 
-void switchNunchuck()
+inline void switchNunchuck()
 {
     digitalWrite(MOTIONPLUS, LOW);
     digitalWrite(NUNCHUCK,   LOW);
     digitalWrite(NUNCHUCK,   HIGH);
 }
 
-void getAccel()
+inline void getAccel()
 {
     switchNunchuck();
     nunchuck.update();
@@ -28,7 +28,7 @@ void getAccel()
     accelZ = -1 * (((nunchuck.accelZ * VddStep) - Voff) * SoInv);
 }
 
-void getGyro()
+inline void getGyro()
 {
     switchWmp();
     wmp.update();    
