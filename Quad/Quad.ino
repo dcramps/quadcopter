@@ -1,11 +1,13 @@
+#include <PID_v1.h>
 #include <openIMU.h>
 #include "MotionPlus.h"
 #include "Nunchuck.h"
 #include <SPI.h>
 #include <WiFly.h>
 #include <Wire.h>
+#include <Servo.h>
 
-#define WIFLY 0 //1 = client, 2 = server
+#define WIFLY 0 //0 = off, 1 = client, 2 = server
 
 #define RAD(x) ((x) * 0.0174532925)
 
@@ -104,11 +106,38 @@ void getGyro()
     gyroZ =       RAD(wmp.yaw_r);
 }
 
+//PID
+double set; //where we want to be
+double out; //output from PID (motor adjustment value)
+
+double p = 0.04;
+double i = 0.01;
+double d = 0.00;
+
+PID pitchPID((double*)&imu.pitch, &out, &set, 0.04,0.01,0.00, DIRECT);
+
+//MOTORS
+#define MOTOR_1_PIN 9
+#define MOTOR_2_PIN 6
+#define MOTOR_3_PIN 5
+#define MOTOR_4_PIN 3
+
+#define MOTOR_1 1
+#define MOTOR_2 2
+#define MOTOR_3 3
+#define MOTOR_4 4
+
+Servo motor1;
+Servo motor2;
+Servo motor3;
+Servo motor4;
+
 void setup()
 {
     Serial.begin(115200);
+    delay(500);
     TWBR = ((F_CPU / 4000000) - 16) / 2;
-    //Serial.println("SETUP\tStarting...");
+//    Serial.println("SETUP\tStarting...");
 
     /*Setup Pins*/
     pinMode(MOTIONPLUS, OUTPUT);
@@ -121,12 +150,12 @@ void setup()
     /*Init MotionPlus*/
     switchWmp();
     wmp.init();
-    Serial.println("Gyro enabled");
+//    Serial.println("Gyro enabled");
 
     /*Init Nunchuck*/
     switchNunchuck();
     nunchuck.init();
-    Serial.println("Accel enabled");
+//    Serial.println("Accel enabled");
 
 #if WIFLY == 1
     // Client
@@ -163,8 +192,23 @@ void setup()
 #endif
 
     timer = millis();
-    Serial.println("Starting loop");
+    pitchPID.SetMode(AUTOMATIC);
+    pitchPID.SetOutputLimits(-1000,1000);
+    pitchPID.SetSampleTime(3);
+//    Serial.println("Starting loop");
+
+      motor1.attach(MOTOR_1_PIN);
+      motor2.attach(MOTOR_2_PIN);
+      motor3.attach(MOTOR_3_PIN);
+      motor4.attach(MOTOR_4_PIN);
+      
+      motor1.writeMicroseconds(1000);
+      motor2.writeMicroseconds(1000);
+      motor3.writeMicroseconds(1000);
+      motor4.writeMicroseconds(1000);
 }
+
+const int throttleMin = 1300;
 
 void loop()
 {
@@ -172,33 +216,24 @@ void loop()
     dt = diff*0.001; //delta in seconds
 
     if (diff >= 3) {
-        calc++;
         timer = millis();
+        
+        //get sensor data
         getAccel();
         getGyro();
+        
+        //run IMU calc
         imu.IMUupdate();
-        //    }
-        //    
-        //    if (calc==5) {
-        calc=0;
         imu.GetEuler();
-//        comma();
-//        Serial.print(accelX,3);
-//        comma();
-//        Serial.print(accelY,3);
-//        comma();
-//        Serial.print(accelZ,3);
-//        comma();
-//        Serial.print(gyroX,3);
-//        comma();
-//        Serial.print(gyroY,3);
-//        comma();
-//        Serial.print(gyroZ,3);
-//        comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();comma();
-        Serial.print(imu.pitch,3);
-        comma();
-        Serial.print(imu.roll,3);
-        endl();
+        
+        //run PID calc
+//        in = imu.pitch;
+        pitchPID.Compute();
+        SerialSend();
+        SerialReceive();
+        
+        motor1.writeMicroseconds(constrain(throttleMin+out,1000,2000));
+        motor3.writeMicroseconds(constrain(throttleMin-out,1000,2000));        
     }
 }
 
@@ -217,5 +252,106 @@ void endl()
     Serial.println();
 }
 
+/********************************************
+ * Serial Communication functions / helpers
+ ********************************************/
+
+
+union {                // This Data structure lets
+  byte asBytes[24];    // us take the byte array
+  float asFloat[6];    // sent from processing and
+}                      // easily convert it to a
+foo;                   // float array
+
+
+
+// getting float values from processing into the arduino
+// was no small task.  the way this program does it is
+// as follows:
+//  * a float takes up 4 bytes.  in processing, convert
+//    the array of floats we want to send, into an array
+//    of bytes.
+//  * send the bytes to the arduino
+//  * use a data structure known as a union to convert
+//    the array of bytes back into an array of floats
+
+//  the bytes coming from the arduino follow the following
+//  format:
+//  0: 0=Manual, 1=Auto, else = ? error ?
+//  1: 0=Direct, 1=Reverse, else = ? error ?
+//  2-5: float setpoint
+//  6-9: float input
+//  10-13: float output  
+//  14-17: float P_Param
+//  18-21: float I_Param
+//  22-245: float D_Param
+void SerialReceive()
+{
+
+  // read the bytes sent from Processing
+  int index=0;
+  byte Auto_Man = -1;
+  byte Direct_Reverse = -1;
+  while(Serial.available()&&index<26)
+  {
+    if(index==0) Auto_Man = Serial.read();
+    else if(index==1) Direct_Reverse = Serial.read();
+    else foo.asBytes[index-2] = Serial.read();
+    index++;
+  } 
+  
+  // if the information we got was in the correct format, 
+  // read it into the system
+  if(index==26  && (Auto_Man==0 || Auto_Man==1)&& (Direct_Reverse==0 || Direct_Reverse==1))
+  {
+    set=double(foo.asFloat[0]);
+    //Input=double(foo.asFloat[1]);       // * the user has the ability to send the 
+                                          //   value of "Input"  in most cases (as 
+                                          //   in this one) this is not needed.
+    if(Auto_Man==0)                       // * only change the output if we are in 
+    {                                     //   manual mode.  otherwise we'll get an
+      out=double(foo.asFloat[2]);      //   output blip, then the controller will 
+    }                                     //   overwrite.
+    
+    double p, i, d;                       // * read in and set the controller tunings
+    p = double(foo.asFloat[3]);           //
+    i = double(foo.asFloat[4]);           //
+    d = double(foo.asFloat[5]);           //
+    pitchPID.SetTunings(p, i, d);            //
+    
+    if(Auto_Man==0) pitchPID.SetMode(MANUAL);// * set the controller mode
+    else pitchPID.SetMode(AUTOMATIC);             //
+    
+    if(Direct_Reverse==0) pitchPID.SetControllerDirection(DIRECT);// * set the controller Direction
+    else pitchPID.SetControllerDirection(REVERSE);          //
+  }
+  Serial.flush();                         // * clear any random data from the serial buffer
+}
+
+// unlike our tiny microprocessor, the processing ap
+// has no problem converting strings into floats, so
+// we can just send strings.  much easier than getting
+// floats from processing to here no?
+void SerialSend()
+{
+  Serial.print("PID ");
+  Serial.print(set);   
+  Serial.print(" ");
+  Serial.print((double)imu.pitch);   
+  Serial.print(" ");
+  Serial.print(out);   
+  Serial.print(" ");
+  Serial.print(pitchPID.GetKp());   
+  Serial.print(" ");
+  Serial.print(pitchPID.GetKi());   
+  Serial.print(" ");
+  Serial.print(pitchPID.GetKd());   
+  Serial.print(" ");
+  if(pitchPID.GetMode()==AUTOMATIC) Serial.print("Automatic");
+  else Serial.print("Manual");  
+  Serial.print(" ");
+  if(pitchPID.GetDirection()==DIRECT) Serial.println("Direct");
+  else Serial.println("Reverse");
+}
 
 
