@@ -130,10 +130,10 @@ void setup()
   ILabel    = controlP5.addTextlabel("I",   "Waiting...", 100, 213);
   DLabel    = controlP5.addTextlabel("D",   "Waiting...", 100, 263);
   
-  m1Label   = controlP5.addTextlabel("m1",  "Waiting...", 60,  450);
-  m2Label   = controlP5.addTextlabel("m2",  "Waiting...", 35,  475); 
-  m3Label   = controlP5.addTextlabel("m3",  "Waiting...", 85,  475);
-  m4Label   = controlP5.addTextlabel("m4",  "Waiting...", 60,  500);
+  m1Label   = controlP5.addTextlabel("m1",  "Waiting...", 60,  500);
+  m2Label   = controlP5.addTextlabel("m2",  "Waiting...", 35,  525); 
+  m3Label   = controlP5.addTextlabel("m3",  "Waiting...", 85,  525);
+  m4Label   = controlP5.addTextlabel("m4",  "Waiting...", 60,  550);
 
   controlP5.addButton("Send",0.0,10,310,120,20);
   controlP5.addButton("ON",0.0,10,340,120,20);
@@ -386,9 +386,9 @@ void Send()
   toSend[0] = float("0.0");
   toSend[1] = float("0.0");
   toSend[2] = float("0.0");
-  toSend[3] = lastP;
-  toSend[4] = lastI;
-  toSend[5] = lastD;
+  toSend[3] = float(PField.getText());
+  toSend[4] = float(IField.getText());
+  toSend[5] = float(DField.getText());
   Byte motors = (byte)0; //make sure it's false until we set it
   if (motorsEnabled == true) {
     motors = (byte)1;
