@@ -1,3 +1,5 @@
+#include <PID_AutoTune_v0.h>
+
 #include <PID_v1.h>
 #include <openIMU.h>
 #include "MotionPlus.h"
@@ -79,10 +81,30 @@ Servo motor2;
 Servo motor3;
 Servo motor4;
 
+int motor1value = 1000;
+int motor2value = 1000;
+int motor3value = 1000;
+int motor4value = 1000;
+
+boolean motorsEnabled = false;
+void ledOn() 
+{
+    digitalWrite(13,HIGH);
+}
+
+void ledOff()
+{
+    digitalWrite(13,LOW);
+}
+
+
+PID_ATune aTune((double*)&imu.pitch, &out_p);
+boolean tuning = true;
+
 void setup()
 {
     pinMode(13,OUTPUT);
-    digitalWrite(13,HIGH);
+    ledOn();
     initMotors();
     Serial.begin(115200);
     TWBR = ((F_CPU / 4000000) - 16) / 2;
@@ -99,57 +121,51 @@ void setup()
     switchNunchuck();
     nunchuck.init();
 
-//#if WIFLY == 1
-//    // Client
-//    WiFly.begin();
-//
-//    if (!WiFly.join(ssid, passphrase)) {
-//        while (1) {
-//        }
-//    }
-//#elsif WIFLY == 2
-//    WiFly.begin(true);
-//    server.begin();
-//
-//    if (!WiFly.createAdHocNetwork(ssid)) {
-//        while (1) {
-//        } //bad things have happened.
-//    }
-//
-//    server.begin();
-//#endif
+    //#if WIFLY == 1
+    //    // Client
+    //    WiFly.begin();
+    //
+    //    if (!WiFly.join(ssid, passphrase)) {
+    //        while (1) {
+    //        }
+    //    }
+    //#elsif WIFLY == 2
+    //    WiFly.begin(true);
+    //    server.begin();
+    //
+    //    if (!WiFly.createAdHocNetwork(ssid)) {
+    //        while (1) {
+    //        } //bad things have happened.
+    //    }
+    //
+    //    server.begin();
+    //#endif
 
     timer = millis();
-       
+
     pitchPID.SetMode(AUTOMATIC);
     pitchPID.SetOutputLimits(-1000,1000);
     pitchPID.SetSampleTime(3);
-    
+
     rollPID.SetMode(AUTOMATIC);
     rollPID.SetOutputLimits(-1000,1000);
     rollPID.SetSampleTime(3);
-    
+
     delay(2000);
-    digitalWrite(13,LOW);
+    ledOff();
 }
 
-const int throttleMin = 1300;
-int count = 0;
+unsigned int warmup      = 1500;
+unsigned int sendCounter = 0;
+#define THROTTLE_SET  1200
+#define THROTTLE_ZERO 1000
+#define THROTTLE_MAX  1400
 
 void loop()
 {
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
-    count++;
-    if (count>=200 && count<250) {
-        digitalWrite(13,HIGH);
-    }
-    
-    if (count>=250) {
-        count=0;
-        digitalWrite(13,LOW);
-    }
-    
+
     if (diff >= 3) {
 
         timer = millis();
@@ -162,44 +178,39 @@ void loop()
         imu.IMUupdate();
         imu.GetEuler();
 
-        //run PID calc
-        pitchPID.Compute();
-        rollPID.Compute();
-        
-        //send to processing
-//        SerialSend();
 
-        updateMotors();
+
+        if (warmup==0) {
+            //run PID calc
+            pitchPID.Compute();
+            //rollPID.Compute();
+            updateMotors();
+
+            if (sendCounter>100) {
+                //processing
+                SerialSend();
+                SerialReceive();
+                sendCounter = 0;
+            }
+            sendCounter++;
+        } else {
+            warmup--;
+        }
     }
-}
-
-void tab()
-{
-    Serial.print("\t");
-}
-
-void comma()
-{
-    Serial.print(",");
-}
-
-void endl()
-{
-    Serial.println();
 }
 
 /********************************************
  * Serial Communication functions / helpers
  ********************************************/
 
-//
-//union {                // This Data structure lets
-//    byte asBytes[24];    // us take the byte array
-//    float asFloat[6];    // sent from processing and
-//}                      // easily convert it to a
-//foo;                   // float array
-//
-//
+
+union {
+    byte asBytes[24];
+    float asFloat[6];
+}
+data;
+
+
 
 // getting float values from processing into the arduino
 // was no small task.  the way this program does it is
@@ -221,48 +232,43 @@ void endl()
 //  14-17: float P_Param
 //  18-21: float I_Param
 //  22-245: float D_Param
-//void SerialReceive()
-//{
-//
-//    // read the bytes sent from Processing
-//    int index=0;
-//    byte Auto_Man = -1;
-//    byte Direct_Reverse = -1;
-//    while(Serial.available()&&index<26)
-//    {
-//        if(index==0) Auto_Man = Serial.read();
-//        else if(index==1) Direct_Reverse = Serial.read();
-//        else foo.asBytes[index-2] = Serial.read();
-//        index++;
-//    } 
-//
-//    // if the information we got was in the correct format, 
-//    // read it into the system
-//    if(index==26  && (Auto_Man==0 || Auto_Man==1)&& (Direct_Reverse==0 || Direct_Reverse==1))
-//    {
-//        set=double(foo.asFloat[0]);
-//        //Input=double(foo.asFloat[1]);       // * the user has the ability to send the 
-//                                              //   value of "Input"  in most cases (as 
-//                                              //   in this one) this is not needed.
-//        if(Auto_Man==0)                       // * only change the output if we are in 
-//        {                                     //   manual mode.  otherwise we'll get an
-//            out=double(foo.asFloat[2]);       //   output blip, then the controller will 
-//        }                                     //   overwrite.
-//
-//        double p, i, d;                       // * read in and set the controller tunings
-//        p = double(foo.asFloat[3]);           //
-//        i = double(foo.asFloat[4]);           //
-//        d = double(foo.asFloat[5]);           //
-//        pitchPID.SetTunings(p, i, d);         //
-//
-//        if(Auto_Man==0) pitchPID.SetMode(MANUAL);// * set the controller mode
-//        else pitchPID.SetMode(AUTOMATIC);        //
-//
-//        if(Direct_Reverse==0) pitchPID.SetControllerDirection(DIRECT);// * set the controller Direction
-//        else pitchPID.SetControllerDirection(REVERSE);                //
-//    }
-//    Serial.flush();                         // * clear any random data from the serial buffer
-//}
+void SerialReceive()
+{
+
+    // read the bytes sent from Processing
+    int index=0;
+    byte motors = -1;
+    byte Direct_Reverse = -1; //NOT USED
+    while(Serial.available()&&index<26)
+    {
+        if(index==0) {
+            motors = Serial.read();
+        } else if(index==1) {
+            Direct_Reverse = Serial.read();
+        } else {
+            data.asBytes[index-2] = Serial.read();
+        }
+        index++;
+    }
+
+    // if the information we got was in the correct format, read it into the system
+    if(index==26 && (motors==0 || motors==1)&& (Direct_Reverse==0 || Direct_Reverse==1))
+    {
+        double p, i, d;
+        p = double(data.asFloat[3]);
+        i = double(data.asFloat[4]);
+        d = double(data.asFloat[5]);
+        pitchPID.SetTunings(p, i, d);
+        if (motors==1) {
+            ledOn();
+            motorsEnabled = true;
+        } else {
+            ledOff();
+            motorsEnabled = false;
+        }
+    }
+    Serial.flush();                         // * clear any random data from the serial buffer
+}
 
 // unlike our tiny microprocessor, the processing ap
 // has no problem converting strings into floats, so
@@ -283,12 +289,16 @@ void SerialSend()
     Serial.print(" ");
     Serial.print(pitchPID.GetKd());   
     Serial.print(" ");
-    if(pitchPID.GetMode()==AUTOMATIC) Serial.print("Automatic");
-    else Serial.print("Manual");  
+    Serial.print(motor1value);
     Serial.print(" ");
-    if(pitchPID.GetDirection()==DIRECT) Serial.println("Direct");
-    else Serial.println("Reverse");
+    Serial.print(motor2value);
+    Serial.print(" ");
+    Serial.print(motor3value);
+    Serial.print(" ");
+    Serial.println(motor4value);
 }
+
+
 
 
 
