@@ -72,8 +72,8 @@ double out_p;
 double set_r;
 double out_r;
 
-PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 3.5, 0.13, 0.08, DIRECT);
-PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 3.5, 0.13, 0.08, DIRECT);
+PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 0.0, 0.0, 0.0, DIRECT);
+PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 0.0, 0.0, 0.0, DIRECT);
 
 //Motors
 Servo motor1;
@@ -144,12 +144,12 @@ void setup()
     timer = millis();
 
     pitchPID.SetMode(AUTOMATIC);
-    pitchPID.SetOutputLimits(-1000,1000);
-    pitchPID.SetSampleTime(3);
+    pitchPID.SetOutputLimits(-200,200);
+//    pitchPID.SetSampleTime(3);
 
     rollPID.SetMode(AUTOMATIC);
     rollPID.SetOutputLimits(-1000,1000);
-    rollPID.SetSampleTime(3);
+//    rollPID.SetSampleTime(3);
 
     delay(2000);
     ledOff();
@@ -157,12 +157,20 @@ void setup()
 
 unsigned int warmup      = 1500;
 unsigned int sendCounter = 0;
-#define THROTTLE_SET  1200
+#define THROTTLE_SET  1300
 #define THROTTLE_ZERO 1000
-#define THROTTLE_MAX  1400
+#define THROTTLE_MAX  1450
 
 void loop()
 {
+    if (warmup==0) {
+        pitchPID.SetMode(AUTOMATIC);
+    } else {
+        pitchPID.SetMode(MANUAL);
+    }
+    
+    pitchPID.Compute();
+    
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
 
@@ -178,11 +186,8 @@ void loop()
         imu.IMUupdate();
         imu.GetEuler();
 
-
-
-        if (warmup==0) {
+       if (warmup==0) {
             //run PID calc
-            pitchPID.Compute();
             //rollPID.Compute();
             updateMotors();
 
