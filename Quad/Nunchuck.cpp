@@ -2,13 +2,7 @@
 #include <Wire.h>
 #include "Nunchuck.h"
 
-#define ADDRESS 0x52
-
-
-void Nunchuck::init()
-{
-    Nunchuck::init(10);
-}
+const int kDataAddress = 0x52;
 
 void Nunchuck::init(int calibrationCount)
 {            
@@ -21,7 +15,7 @@ void Nunchuck::init(int calibrationCount)
         
 void Nunchuck::update()
 { 
-    Wire.requestFrom(ADDRESS, 6); 
+    Wire.requestFrom(kDataAddress, 6); 
     
     int data[6];
     data[0] = Wire.read();
@@ -35,12 +29,12 @@ void Nunchuck::update()
     accelY = data[2] * 2 * 2 + ((data[5] >> 2) & 1) * 2 + ((data[5] >> 3) & 1) - accelY0;
     accelZ = data[4] * 2 * 2 + ((data[5] >> 6) & 1) * 2 + ((data[5] >> 7) & 1) - accelZ0;
     
-    Nunchuck::_sendZero(ADDRESS);
+    Nunchuck::_sendZero(kDataAddress);
 }
     
 void Nunchuck::_sendByte(byte data, byte location)
 {    
-    Wire.beginTransmission(ADDRESS);
+    Wire.beginTransmission(kDataAddress);
     Wire.write(location);
     Wire.write(data);    
     Wire.endTransmission();

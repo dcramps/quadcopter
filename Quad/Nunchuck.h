@@ -10,7 +10,6 @@ class Nunchuck
         int16_t accelY;
         int16_t accelZ;
     
-	void init();
         void init(int calibrationCount);    
         void update();
         

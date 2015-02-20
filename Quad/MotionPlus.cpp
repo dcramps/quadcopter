@@ -2,20 +2,15 @@
 #include <Wire.h>
 #include "MotionPlus.h"
 
-#define BEGIN_ADDRESS 0x53
-#define ADDRESS 0x52
-#define SLOWSCALE 20
-#define FASTSCALE 5
-
-void MotionPlus::init()
-{
-    MotionPlus::init(500);
-}
+const int kBeginAddress = 0x53;
+const int kDataAddress = 0x52;
+const int kSlowScale = 20;
+const int kFastScale = 5;
 
 void MotionPlus::init(int calibrationCount)
 {      
     Wire.begin();
-    MotionPlus::_sendByte(BEGIN_ADDRESS, 0x04, 0xfe);
+    MotionPlus::_sendByte(kDataAddress, 0x04, 0xfe);
     MotionPlus::_calibrate(calibrationCount);
 }
     
@@ -23,8 +18,8 @@ void MotionPlus::update()
 { 
     int yawScale, pitchScale, rollScale;
     
-    MotionPlus::_sendZero(ADDRESS);
-    Wire.requestFrom(ADDRESS,6);
+    MotionPlus::_sendZero(kDataAddress);
+    Wire.requestFrom(kDataAddress, 6);
 
     int data[6];
     data[0] = Wire.read();
@@ -38,9 +33,9 @@ void MotionPlus::update()
     int slowYaw   = data[3] & 2;
     int slowPitch = data[4] & 2;
 
-    yawScale   = (slowYaw)   ? SLOWSCALE : FASTSCALE;
-    rollScale  = (slowRoll)  ? SLOWSCALE : FASTSCALE;
-    pitchScale = (slowPitch) ? SLOWSCALE : FASTSCALE;
+    yawScale   = (slowYaw)   ? kSlowScale : kFastScale;
+    rollScale  = (slowRoll)  ? kSlowScale : kFastScale;
+    pitchScale = (slowPitch) ? kSlowScale : kFastScale;
 
     yaw_r   =      (((data[3] >> 2) << 8) + data[0] - yaw0)   / yawScale;
     roll_r  = -1 * (((data[4] >> 2) << 8) + data[1] - pitch0) / rollScale;
@@ -69,8 +64,8 @@ void MotionPlus::_calibrate(int calibrationCount)
     roll0 = 0;
     
     for (int i=0; i<calibrationCount; i++) {
-        MotionPlus::_sendZero(ADDRESS);
-        Wire.requestFrom(ADDRESS, 6);
+        MotionPlus::_sendZero(kDataAddress);
+        Wire.requestFrom(kDataAddress, 6);
         
         int data[6];
         data[0] = Wire.read();

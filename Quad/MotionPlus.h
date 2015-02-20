@@ -9,8 +9,7 @@ class MotionPlus
         int16_t pitch_r;
         int16_t roll_r;
 	
-        void init();
-        void init(int calibrationCount);    
+        void init(int calibrationCount);
         void update();
 
     private:  

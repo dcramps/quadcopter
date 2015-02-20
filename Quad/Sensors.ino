@@ -6,16 +6,16 @@
 
 inline void switchWmp() 
 {
-    digitalWrite(NUNCHUCK,   LOW);
-    digitalWrite(MOTIONPLUS, LOW);
-    digitalWrite(MOTIONPLUS, HIGH);    
+    digitalWrite(kNunchukPin, LOW);
+    digitalWrite(kMotionPlusPin, LOW);
+    digitalWrite(kMotionPlusPin, HIGH);    
 }
 
 inline void switchNunchuck()
 {
-    digitalWrite(MOTIONPLUS, LOW);
-    digitalWrite(NUNCHUCK,   LOW);
-    digitalWrite(NUNCHUCK,   HIGH);
+    digitalWrite(kMotionPlusPin, LOW);
+    digitalWrite(kNunchukPin, LOW);
+    digitalWrite(kNunchukPin, HIGH);
 }
 
 inline void getAccel()

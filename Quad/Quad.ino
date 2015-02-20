@@ -1,5 +1,3 @@
-#include <PID_AutoTune_v0.h>
-
 #include <PID_v1.h>
 #include <openIMU.h>
 #include "MotionPlus.h"
@@ -11,13 +9,16 @@
 
 #define WIFLY 0 //0 = off, 1 = client, 2 = server
 #define RAD(x) ((x) * 0.0174532925)
-#define MOTIONPLUS 2
-#define NUNCHUCK 4
-#define MOTOR_1_PIN 9
-#define MOTOR_2_PIN 6
-#define MOTOR_3_PIN 3
-#define MOTOR_4_PIN 5
 
+//Pin constants
+const int kMotionPlusPin = 2;
+const int kNunchukPin = 4;
+const int kMotorPin1 = 9;
+const int kMotorPin2 = 6;
+const int kMotorPin3 = 3;
+const int kMotorPin4 = 5;
+
+//IMU values
 float accelX = 0;
 float accelY = 0;
 float accelZ = 0;
@@ -25,12 +26,12 @@ float gyroX = 0;
 float gyroY = 0;
 float gyroZ = 0;
 
-//Constants 
+//IMU Constants 
 //Values derived from the datasheet
 //http://html.alldatasheet.com/html-pdf/171987/STMICROELECTRONICS/LIS3L02AL/9754/5/LIS3L02AL.html
 
 const float Vdd = 3.3;
-const float Voff = Vdd/2.0f + (Vdd/2.0f)*(0.0015); //Vdd/2 +/-6%
+const float Voff = Vdd/2.0f;// + (Vdd/2.0f)*(0.0015); //Vdd/2 +/-6%
 const float So = Vdd/5.0f; //Vdd/5 +/-10%
 const float SoInv = 1/So;
 const float radToDeg = 180/M_PI;
@@ -63,7 +64,7 @@ MotionPlus wmp = MotionPlus();
 Nunchuck nunchuck = Nunchuck();
 
 //IMU
-openIMU imu(&gyroX,&gyroY,&gyroZ,&accelX,&accelY,&accelZ,&dt);
+openIMU imu(&gyroX, &gyroY, &gyroZ, &accelX, &accelY, &accelZ, &dt);
 
 //PID
 double set_p;
@@ -72,7 +73,7 @@ double out_p;
 double set_r;
 double out_r;
 
-PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 0.0, 0.0, 0.0, DIRECT);
+PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 2.15, 0.03, 0.56, DIRECT);
 PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 0.0, 0.0, 0.0, DIRECT);
 
 //Motors
@@ -97,10 +98,6 @@ void ledOff()
     digitalWrite(13,LOW);
 }
 
-
-PID_ATune aTune((double*)&imu.pitch, &out_p);
-boolean tuning = true;
-
 void setup()
 {
     pinMode(13,OUTPUT);
@@ -109,17 +106,17 @@ void setup()
     Serial.begin(115200);
     TWBR = ((F_CPU / 4000000) - 16) / 2;
 
-    pinMode(MOTIONPLUS, OUTPUT);
-    pinMode(NUNCHUCK, OUTPUT);
+    pinMode(kMotionPlusPin, OUTPUT);
+    pinMode(kNunchukPin, OUTPUT);
 
-    digitalWrite(NUNCHUCK, HIGH);
-    digitalWrite(MOTIONPLUS, HIGH);
+    digitalWrite(kNunchukPin, HIGH);
+    digitalWrite(kMotionPlusPin, HIGH);
 
     switchWmp();
-    wmp.init();
+    wmp.init(500);
 
     switchNunchuck();
-    nunchuck.init();
+    nunchuck.init(10);
 
     //#if WIFLY == 1
     //    // Client
@@ -145,11 +142,11 @@ void setup()
 
     pitchPID.SetMode(AUTOMATIC);
     pitchPID.SetOutputLimits(-200,200);
-//    pitchPID.SetSampleTime(3);
+    pitchPID.SetSampleTime(3);
 
     rollPID.SetMode(AUTOMATIC);
     rollPID.SetOutputLimits(-1000,1000);
-//    rollPID.SetSampleTime(3);
+    rollPID.SetSampleTime(3);
 
     delay(2000);
     ledOff();
@@ -157,9 +154,10 @@ void setup()
 
 unsigned int warmup      = 1500;
 unsigned int sendCounter = 0;
-#define THROTTLE_SET  1300
-#define THROTTLE_ZERO 1000
-#define THROTTLE_MAX  1450
+unsigned int throttle    = 1000;
+
+const unsigned int kThrottleMin = 1000;
+const unsigned int kThrottleMax = 1800;
 
 void loop()
 {
@@ -198,7 +196,7 @@ void loop()
                 sendCounter = 0;
             }
             sendCounter++;
-        } else {
+       } else {
             warmup--;
         }
     }
@@ -217,53 +215,43 @@ data;
 
 
 
-// getting float values from processing into the arduino
-// was no small task.  the way this program does it is
-// as follows:
-//  * a float takes up 4 bytes.  in processing, convert
-//    the array of floats we want to send, into an array
-//    of bytes.
-//  * send the bytes to the arduino
-//  * use a data structure known as a union to convert
-//    the array of bytes back into an array of floats
-
-//  the bytes coming from the arduino follow the following
-//  format:
-//  0: 0=Manual, 1=Auto, else = ? error ?
-//  1: 0=Direct, 1=Reverse, else = ? error ?
-//  2-5: float setpoint
-//  6-9: float input
-//  10-13: float output  
-//  14-17: float P_Param
-//  18-21: float I_Param
-//  22-245: float D_Param
+//Byte listing
+//0     - kill (if 1, shut down)
+//1-4   - setPoint X axis
+//5-8   - setPoint Y axis
+//9-12  - P value
+//13-16 - I value
+//17-20 - D value
+//21-24 - Throttle
 void SerialReceive()
 {
 
     // read the bytes sent from Processing
     int index=0;
     byte motors = -1;
-    byte Direct_Reverse = -1; //NOT USED
-    while(Serial.available()&&index<26)
+    while(Serial.available()&&index<=24)
     {
         if(index==0) {
             motors = Serial.read();
-        } else if(index==1) {
-            Direct_Reverse = Serial.read();
         } else {
-            data.asBytes[index-2] = Serial.read();
+            data.asBytes[index-1] = Serial.read();
         }
         index++;
     }
 
     // if the information we got was in the correct format, read it into the system
-    if(index==26 && (motors==0 || motors==1)&& (Direct_Reverse==0 || Direct_Reverse==1))
+    if(index==25 && (motors==0 || motors==1))
     {
         double p, i, d;
-        p = double(data.asFloat[3]);
-        i = double(data.asFloat[4]);
-        d = double(data.asFloat[5]);
+        set_p    = double(data.asFloat[0]);
+        set_r    = double(data.asFloat[1]);
+        p        = double(data.asFloat[2]);
+        i        = double(data.asFloat[3]);
+        d        = double(data.asFloat[4]);
+        throttle = double(data.asFloat[5]);
+        
         pitchPID.SetTunings(p, i, d);
+        
         if (motors==1) {
             ledOn();
             motorsEnabled = true;
@@ -272,27 +260,39 @@ void SerialReceive()
             motorsEnabled = false;
         }
     }
-    Serial.flush();                         // * clear any random data from the serial buffer
+    Serial.flush(); //clear any random data from the serial buffer
 }
 
-// unlike our tiny microprocessor, the processing ap
-// has no problem converting strings into floats, so
-// we can just send strings.  much easier than getting
-// floats from processing to here no?
+//Data sent:
+//set pitch
+//set roll
+//IMU pitch
+//IMU roll
+//P value
+//I value
+//D value
+//Throttle
+//Motor 1
+//Motor 2
+//Motor 3
+//Motor 4
 void SerialSend()
 {
-    Serial.print("PID ");
     Serial.print(set_p);   
     Serial.print(" ");
-    Serial.print((double)imu.pitch);   
+    Serial.print(set_r);
     Serial.print(" ");
-    Serial.print(out_p);   
+    Serial.print((double)imu.pitch);
+    Serial.print(" ");
+    Serial.print((double)imu.roll);
     Serial.print(" ");
     Serial.print(pitchPID.GetKp());   
     Serial.print(" ");
     Serial.print(pitchPID.GetKi());   
     Serial.print(" ");
-    Serial.print(pitchPID.GetKd());   
+    Serial.print(pitchPID.GetKd());
+    Serial.print(" ");
+    Serial.print(throttle);   
     Serial.print(" ");
     Serial.print(motor1value);
     Serial.print(" ");
