@@ -3,11 +3,10 @@
 #include "MotionPlus.h"
 #include "Nunchuck.h"
 #include <SPI.h>
-//#include <WiFly.h>
+#include <WiFly.h>
 #include <Wire.h>
 #include <Servo.h>
 
-#define WIFLY 0 //0 = off, 1 = client, 2 = server
 #define RAD(x) ((x) * 0.0174532925)
 
 //Pin constants
@@ -43,19 +42,9 @@ int   diff  = 0; //difference between now and last cycle
 float dt    = 0; //delta in seconds
 int   calc  = 0; //number of calculations since last data transmit
 
-////WiFly stuff
-//#if WIFLY == 1
-////Web Client - Send gyro data to Processing server
-//char passphrase[] = "6476291353";
-//char ssid[] = "robot";
-//byte server[] = { 192, 168, 1, 6 };
-//WiFlyClient client(server, 8000);
-//#elsif WIFLY == 2
-////start a server on port 80
-//WiFlyServer server(80);
-//char ssid[] = "DRONE";
-//unsigned int bytesAvailable = 0;
-//#endif
+WiFlyServer server(80);
+char ssid[] = "DRONE";
+unsigned int bytesAvailable = 0;
 
 //Gyro
 MotionPlus wmp = MotionPlus();
@@ -100,10 +89,25 @@ void ledOff()
 
 void setup()
 {
+    Serial.begin(115200);
+    SpiSerial.begin();
+    
+    Serial.println("Starting WiFi");
+    WiFly.begin(true);
+    server.begin();
+    SpiSerial.begin();
+    
+    if (!WiFly.createAdHocNetwork(ssid)) {
+        while (1) {} //bad things have happened.
+    }
+    
+    server.begin();
+   
+    Serial.print("WiFi started");
+    
     pinMode(13,OUTPUT);
     ledOn();
     initMotors();
-    Serial.begin(115200);
     TWBR = ((F_CPU / 4000000) - 16) / 2;
 
     pinMode(kMotionPlusPin, OUTPUT);
@@ -117,26 +121,6 @@ void setup()
 
     switchNunchuck();
     nunchuck.init(10);
-
-    //#if WIFLY == 1
-    //    // Client
-    //    WiFly.begin();
-    //
-    //    if (!WiFly.join(ssid, passphrase)) {
-    //        while (1) {
-    //        }
-    //    }
-    //#elsif WIFLY == 2
-    //    WiFly.begin(true);
-    //    server.begin();
-    //
-    //    if (!WiFly.createAdHocNetwork(ssid)) {
-    //        while (1) {
-    //        } //bad things have happened.
-    //    }
-    //
-    //    server.begin();
-    //#endif
 
     timer = millis();
 
@@ -160,150 +144,34 @@ const unsigned int kThrottleMin = 1000;
 const unsigned int kThrottleMax = 1800;
 
 void loop()
-{
-    if (warmup==0) {
-        pitchPID.SetMode(AUTOMATIC);
-    } else {
-        pitchPID.SetMode(MANUAL);
-    }
-    
+{    
+    receiveData();
     pitchPID.Compute();
-    
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
 
     if (diff >= 3) {
-
         timer = millis();
-
+    
         //get sensor data
         getAccel();
         getGyro();
-
+    
         //run IMU calc
         imu.IMUupdate();
         imu.GetEuler();
-
-       if (warmup==0) {
-            //run PID calc
-            //rollPID.Compute();
-            updateMotors();
-
-            if (sendCounter>100) {
-                //processing
-                SerialSend();
-                SerialReceive();
-                sendCounter = 0;
-            }
-            sendCounter++;
-       } else {
-            warmup--;
-        }
-    }
-}
-
-/********************************************
- * Serial Communication functions / helpers
- ********************************************/
-
-
-union {
-    byte asBytes[24];
-    float asFloat[6];
-}
-data;
-
-
-
-//Byte listing
-//0     - kill (if 1, shut down)
-//1-4   - setPoint X axis
-//5-8   - setPoint Y axis
-//9-12  - P value
-//13-16 - I value
-//17-20 - D value
-//21-24 - Throttle
-void SerialReceive()
-{
-
-    // read the bytes sent from Processing
-    int index=0;
-    byte motors = -1;
-    while(Serial.available()&&index<=24)
-    {
-        if(index==0) {
-            motors = Serial.read();
-        } else {
-            data.asBytes[index-1] = Serial.read();
-        }
-        index++;
-    }
-
-    // if the information we got was in the correct format, read it into the system
-    if(index==25 && (motors==0 || motors==1))
-    {
-        double p, i, d;
-        set_p    = double(data.asFloat[0]);
-        set_r    = double(data.asFloat[1]);
-        p        = double(data.asFloat[2]);
-        i        = double(data.asFloat[3]);
-        d        = double(data.asFloat[4]);
-        throttle = double(data.asFloat[5]);
         
-        pitchPID.SetTunings(p, i, d);
         
-        if (motors==1) {
-            ledOn();
-            motorsEnabled = true;
-        } else {
-            ledOff();
-            motorsEnabled = false;
-        }
+        updateMotors();
     }
-    Serial.flush(); //clear any random data from the serial buffer
 }
 
-//Data sent:
-//set pitch
-//set roll
-//IMU pitch
-//IMU roll
-//P value
-//I value
-//D value
-//Throttle
-//Motor 1
-//Motor 2
-//Motor 3
-//Motor 4
-void SerialSend()
+void receiveData()
 {
-    Serial.print(set_p);   
-    Serial.print(" ");
-    Serial.print(set_r);
-    Serial.print(" ");
-    Serial.print((double)imu.pitch);
-    Serial.print(" ");
-    Serial.print((double)imu.roll);
-    Serial.print(" ");
-    Serial.print(pitchPID.GetKp());   
-    Serial.print(" ");
-    Serial.print(pitchPID.GetKi());   
-    Serial.print(" ");
-    Serial.print(pitchPID.GetKd());
-    Serial.print(" ");
-    Serial.print(throttle);   
-    Serial.print(" ");
-    Serial.print(motor1value);
-    Serial.print(" ");
-    Serial.print(motor2value);
-    Serial.print(" ");
-    Serial.print(motor3value);
-    Serial.print(" ");
-    Serial.println(motor4value);
+    while (SpiSerial.available() > 0) {
+        char data = SpiSerial.read();
+        Serial.print(data);
+        SpiSerial.write(data);
+    }
 }
-
-
-
-
 
