@@ -14,10 +14,17 @@ Mid --> Edge
 Nothing	GND	Data	Clock	Nothing	3.3v
 
 Motors:
-
-1 2
- X
-3 4
+       L
+    3      1
+    \\    //
+     \\  //
+      \\//
+Rear   ||   Front
+      //\\
+     //  \\
+    //    \\
+    4      2
+       R
 
 LOL IMU DIAGRAM LOL
 

@@ -3,19 +3,21 @@
 #include "MotionPlus.h"
 #include "Nunchuck.h"
 #include <SPI.h>
-#include <WiFly.h>
+// #include <WiFly.h>
+#include "SpiUart.h"
 #include <Wire.h>
 #include <Servo.h>
 
 #define RAD(x) ((x) * 0.0174532925)
+template<class T> inline Print &operator <<(Print &obj, T arg) { obj.print(arg); return obj; } 
 
 //Pin constants
 const int kMotionPlusPin = 2;
 const int kNunchukPin = 4;
 const int kMotorPin1 = 9;
-const int kMotorPin2 = 6;
+const int kMotorPin2 = 5;
 const int kMotorPin3 = 3;
-const int kMotorPin4 = 5;
+const int kMotorPin4 = 6;
 
 //IMU values
 float accelX = 0;
@@ -42,9 +44,7 @@ int   diff  = 0; //difference between now and last cycle
 float dt    = 0; //delta in seconds
 int   calc  = 0; //number of calculations since last data transmit
 
-WiFlyServer server(80);
-char ssid[] = "DRONE";
-unsigned int bytesAvailable = 0;
+char ssid[] = "drone";
 
 //Gyro
 MotionPlus wmp = MotionPlus();
@@ -55,15 +55,18 @@ Nunchuck nunchuck = Nunchuck();
 //IMU
 openIMU imu(&gyroX, &gyroY, &gyroZ, &accelX, &accelY, &accelZ, &dt);
 
+//SPI for WiFly communication
+SpiUartDevice SpiSerial;
+
 //PID
-double set_p;
-double out_p;
+double setPitch;
+double outPitch;
 
-double set_r;
-double out_r;
+double setRoll;
+double outRoll;
 
-PID pitchPID((double*)&imu.pitch, &out_p, &set_p, 2.15, 0.03, 0.56, DIRECT);
-PID  rollPID((double*)&imu.roll,  &out_r, &set_r, 0.0, 0.0, 0.0, DIRECT);
+PID pitchPID((double*)&imu.pitch, &outPitch, &setPitch, 2.15, 0.03, 0.56, DIRECT);
+PID  rollPID((double*)&imu.roll,  &outRoll, &setRoll, 0.0, 0.0, 0.0, DIRECT);
 
 //Motors
 Servo motor1;
@@ -76,7 +79,12 @@ int motor2value = 1000;
 int motor3value = 1000;
 int motor4value = 1000;
 
+float yawZero = 0.0;
+float pitchZero = 0.0;
+float rollZero = 0.0;
+
 boolean motorsEnabled = false;
+
 void ledOn() 
 {
     digitalWrite(13,HIGH);
@@ -90,21 +98,10 @@ void ledOff()
 void setup()
 {
     Serial.begin(115200);
+    Serial << "Connecting to SPI";
     SpiSerial.begin();
-    
-    Serial.println("Starting WiFi");
-    WiFly.begin(true);
-    server.begin();
-    SpiSerial.begin();
-    
-    if (!WiFly.createAdHocNetwork(ssid)) {
-        while (1) {} //bad things have happened.
-    }
-    
-    server.begin();
-   
-    Serial.print("WiFi started");
-    
+    Serial << "...done\n";
+
     pinMode(13,OUTPUT);
     ledOn();
     initMotors();
@@ -116,11 +113,15 @@ void setup()
     digitalWrite(kNunchukPin, HIGH);
     digitalWrite(kMotionPlusPin, HIGH);
 
+    Serial << "Starting gyroscope";
     switchWmp();
     wmp.init(500);
+    Serial << "...done\n";
 
+    Serial << "Starting accelerometer";
     switchNunchuck();
     nunchuck.init(10);
+    Serial << "...done\n";
 
     timer = millis();
 
@@ -134,44 +135,107 @@ void setup()
 
     delay(2000);
     ledOff();
+
+    Serial << "Flushing SPI";
+    SpiSerial.flush();
+    Serial << "...done\n";
 }
 
-unsigned int warmup      = 1500;
-unsigned int sendCounter = 0;
-unsigned int throttle    = 1000;
+uint8_t sendCounter = 0;
+uint8_t control     = 0;
+uint8_t throttle    = 0;
+uint8_t yaw         = 128;
+uint8_t pitch       = 128;
+uint8_t roll        = 128;
 
 const unsigned int kThrottleMin = 1000;
-const unsigned int kThrottleMax = 1800;
+const unsigned int kThrottleMax = 2000;
 
 void loop()
-{    
-    receiveData();
+{
     pitchPID.Compute();
+
     diff = millis()-timer;
     dt = diff*0.001; //delta in seconds
 
     if (diff >= 3) {
         timer = millis();
-    
-        //get sensor data
-        getAccel();
-        getGyro();
-    
-        //run IMU calc
-        imu.IMUupdate();
-        imu.GetEuler();
-        
-        
+        imuUpdate();
         updateMotors();
+        sendCounter++;
+    }
+    
+    receiveData();
+
+    if (sendCounter == 15) {
+        sendCounter = 0;
+        sendData();
     }
 }
 
+inline void imuUpdate()
+{
+    //get sensor data
+    getAccel();
+    getGyro();
+
+    //run IMU calc
+    imu.IMUupdate();
+    imu.GetEuler();
+}
+
+
+int byteIndex = 0;
+int8_t data[5];
 void receiveData()
 {
-    while (SpiSerial.available() > 0) {
-        char data = SpiSerial.read();
-        Serial.print(data);
-        SpiSerial.write(data);
+    while (SpiSerial.available()) {
+        byte thisByte = SpiSerial.read();
+        data[byteIndex++] = thisByte;
+
+        if (byteIndex == 5) {
+            byteIndex = 0;
+
+            throttle = data[0];
+            yaw = data[1];
+            pitch = data[2];
+            roll = data[3];
+            control = data[4];
+            setPitch = (double)map(pitch, 0, 255, -45, 45);
+
+            if (control == '/') {
+                Serial << "Disarming\n";
+                disarmMotors();
+            } else if (control == '^') {
+                Serial << "Arming\n";
+                armMotors();
+            }
+        }
     }
 }
 
+char imuRollBuffer[8];
+char imuPitchBuffer[8];
+char imuYawBuffer[8];
+char throttleBuffer[8];
+char yawBuffer[8];
+char pitchBuffer[8];
+char rollBuffer[8];
+void sendData()
+{
+    dtostrf(imu.roll, 4, 1, imuRollBuffer);
+    dtostrf(imu.pitch, 4, 1, imuPitchBuffer);
+    dtostrf(imu.yaw, 4, 1, imuYawBuffer);
+    sprintf(throttleBuffer, "/st%d", throttle);
+    sprintf(yawBuffer, "/sy%d", yaw);
+    sprintf(pitchBuffer, "/sp%d", pitch);
+    sprintf(rollBuffer, "/sr%d", roll);
+
+    SpiSerial.write("/ir"); SpiSerial.write(imuRollBuffer);
+    SpiSerial.write("/ip"); SpiSerial.write(imuPitchBuffer);
+    SpiSerial.write("/iy"); SpiSerial.write(imuYawBuffer);
+    SpiSerial.write(throttleBuffer);
+    SpiSerial.write(yawBuffer);
+    SpiSerial.write(pitchBuffer);
+    SpiSerial.write(rollBuffer);
+}

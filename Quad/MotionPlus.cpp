@@ -10,7 +10,7 @@ const int kFastScale = 5;
 void MotionPlus::init(int calibrationCount)
 {      
     Wire.begin();
-    MotionPlus::_sendByte(kDataAddress, 0x04, 0xfe);
+    MotionPlus::_sendByte(kBeginAddress, 0x04, 0xfe);
     MotionPlus::_calibrate(calibrationCount);
 }
     
